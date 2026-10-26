@@ -5,7 +5,7 @@ A bird-inspired, 3D-printed biped with the top of its torso **500 mm above the g
 ## Design baseline
 
 - **Eight actuated degrees of freedom:** hip roll, hip pitch, knee pitch, and ankle/hock pitch on each leg.
-- Eaglepower **90 KV BLDC** motors; exact model and dimensions still to be confirmed.
+- Eaglepower **8308, 90 KV BLDC** motors; model identified by the user from the reference BOM. Mounting dimensions and electrical/thermal limits remain to be verified.
 - Rope capstan reductions targeting approximately **8:1**.
 - ODrive motor controllers; **S1 is the proposed first-prototype baseline**, pending measured current and thermal requirements.
 - Arduino **UNO Q preferred**, subject to a CAN, timing, and policy-inference bench test.
