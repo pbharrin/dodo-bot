@@ -9,7 +9,7 @@ Date: 2026-10-26. Status: proposed baseline; dimensions and ratings below are no
 | Torso-top height | 500 mm from floor in nominal standing pose | User requirement |
 | Appearance | Dodo-like rounded torso and folded bird legs | User requirement |
 | Joint count | 3 in-plane joints plus hip roll per leg; 8 motors total | Interpretation of final user description |
-| Motors | Eaglepower BLDC, 90 KV | User requirement; exact SKU needed |
+| Motors | Eaglepower 8308 BLDC, 90 KV | Model identified by user from reference BOM; dimensions/ratings pending |
 | Transmission | Approximately 8:1 rope capstan | User requirement |
 | Motor control | ODrive | User requirement; S1 proposed |
 | Main control | Prefer UNO Q, with server-trained walking policy | Preference; validation needed |
@@ -62,7 +62,7 @@ Therefore:
 - Review the STEP geometry before choosing bearing sizes, hole patterns, or motor mounting dimensions.
 - Treat 120 degrees as a reference travel limit, not a guaranteed usable range for every joint. Clock each joint around its nominal pose, reserve stopping margin, and check walking/crouching travel before freezing drums.
 - The 852 g number includes a test-stand implementation; it is not a measured robot joint-module mass. Eight exact copies would be 6.82 kg before the rest of the robot. Weigh a stripped-down module and make an itemized whole-robot mass budget.
-- Do not assume KV determines continuous torque. Confirm exact motor SKU, winding resistance, pole count, dimensions, mass, voltage/current guidance, and thermistor provision.
+- Do not assume KV determines continuous torque. For the selected Eaglepower 8308 90 KV, verify winding resistance, pole count, dimensions, mass, voltage/current guidance, and thermistor provision.
 - Characterize low-speed holding and reversal heating without propeller airflow. A drone power rating is not a standing-joint torque rating.
 
 ### Preliminary sizing calculation
@@ -109,7 +109,7 @@ Quantities refer to the full robot; acquire one axis for the first bench milesto
 
 | Component | Quantity | Selection notes |
 | --- | --- | --- |
-| Eaglepower 90 KV motors | 8 | Exact SKU and mounting drawing needed |
+| Eaglepower 8308 90 KV motors | 8 | Model identified from BOM by user; mounting drawing and ratings to verify |
 | Capstan drive modules | 8 | Approximately 8:1; travel and load qualification required |
 | ODrive S1 | 8 proposed | One motor per controller; confirm thermal packaging |
 | Motor position sensing | 8 channels | S1 onboard encoder where aligned, otherwise compatible external encoders; appropriate magnets |
@@ -157,7 +157,7 @@ Use an independent hardware stop path and controller watchdogs; demonstrate stal
 
 ## 7. Simulation and build milestones
 
-1. **Requirements and envelopes:** identify exact motor, inventory masses, create the kinematic skeleton, and check 120-degree travel feasibility. Exit: a collision-checked nominal stance and candidate step cycle at 500 mm torso height.
+1. **Requirements and envelopes:** verify selected motor geometry and ratings, inventory masses, create the kinematic skeleton, and check 120-degree travel feasibility. Exit: a collision-checked nominal stance and candidate step cycle at 500 mm torso height.
 2. **One actuator:** characterize output torque/current, backdrive behavior, ratio, reversal lost motion, thermal settling, usable travel, and repeated-cycle rope tension. Exit: documented continuous/peak limits and module mass sufficient for a plausible whole-robot budget.
 3. **One leg on a fixture:** verify encoder signs, hard/soft limits, foot trajectories, contact detection, and load-bearing motion. Exit: repeatable stance/swing cycles under representative load without excessive heat, slip, or structural deformation.
 4. **Whole robot in simulation:** use measured link mass/inertia, actuator dynamics, torque/speed limits, contact geometry, latency, and rope compliance. Evaluate standing and stepping; randomize uncertain friction, mass, delays and actuation. Exit: robust policy across the intended operating range with realistic limits.
@@ -168,12 +168,13 @@ Simple analytical/IK motions come before learned walking. Preserve identical joi
 
 ## 8. Decisions needed before detailed CAD
 
-Highest priority is the exact Eaglepower motor product link or a drawing/photo with dimensions. Next: whole-robot target mass, desired initial walking speed, runtime, available ODrive hardware, intended print material, and CAD authoring tool. Until specified, assume slow indoor walking, passive cosmetic head/tail, no payload, and defer the battery purchase.
+The user identified the reference BOM motor as Eaglepower 8308 on 2026-10-26; retain the specified 90 KV winding. Highest priority is now verifying its mounting drawing, dimensions, mass, and electrical/thermal ratings against the reference assembly or manufacturer documentation. Next: whole-robot target mass, desired initial walking speed, runtime, available ODrive hardware, intended print material, and CAD authoring tool. Until specified, assume slow indoor walking, passive cosmetic head/tail, no payload, and defer the battery purchase.
 
 ## 9. Source provenance
 
 - Capstan repository reviewed at [9c032fe83c1d9f3edaa0a6492fcbc8ce92e62ecf](https://github.com/aaedmusa/Capstan-Drive/tree/9c032fe83c1d9f3edaa0a6492fcbc8ce92e62ecf).
 - Its STEP directory contains drums, base plate, brace, slider, motor magnet holder, ODrive cover, assembly jig, and a zipped test-stand assembly.
 - Repository root inspected: no standalone license file was listed. Keep upstream CAD linked as reference until reuse terms are established; do not assign it a new license.
-- Upstream STEP filenames were verified, but their solid geometry and BOM spreadsheet have not yet been dimensionally audited.
+- The user inspected the upstream BOM spreadsheet and reported the motor model as Eaglepower 8308 on 2026-10-26. This identifies the motor family; no unverified dimensional or current ratings have been adopted.
+- Upstream STEP filenames were verified, but their solid geometry and BOM spreadsheet have not yet been dimensionally audited by the assistant.
 - No third-party CAD or user video is redistributed in this initial commit.
