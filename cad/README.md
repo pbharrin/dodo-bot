@@ -19,7 +19,7 @@ Proposed layout as geometry is developed:
 
 ## Coordinate convention
 
-Body X forward, Y left, Z up. Hip roll about X; pitch joints about the local Y axis after hip roll. Confirm signs and axis direction consistently for mirrored legs.
+Body X forward, Y left, Z up. Plan five actuators per leg (ten total): hip roll, hip pitch, hip yaw, knee pitch and ankle/hock pitch. In the neutral pose, roll is about X, pitch about Y and yaw about Z; downstream axes follow their parent transforms. Confirm hip axis order and signs consistently for mirrored legs. The user identifies two motors for hip pitch/yaw; verify whether their transmission is independent or coupled before defining assembly joints. For a differential, retain separate motor and joint coordinates and document their position/velocity/torque mappings.
 
 The floor plane is Z = 0 in the nominal standing layout. The top of the torso is Z = 500 mm. Head/neck are additional.
 
@@ -29,7 +29,7 @@ Use stable part identifiers, for example `DB-ACT-001_motor_mount.step` and `DB-H
 
 1. Skeleton layout and exact purchased-hardware envelopes.
 2. Reusable actuator cartridge and bench fixture.
-3. Hip roll/pitch assembly.
+3. Hip roll support and two-motor hip pitch/yaw assembly.
 4. One leg and its foot.
 5. Pelvis and electronics supports.
 6. Lightweight cosmetic shell.
