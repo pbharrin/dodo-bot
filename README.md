@@ -7,7 +7,7 @@ A bird-inspired, 3D-printed biped with the top of its torso **500 mm above the g
 - **Eight actuated degrees of freedom:** hip roll, hip pitch, knee pitch, and ankle/hock pitch on each leg.
 - Eaglepower **8308, 90 KV BLDC** motors; model identified by the user from the reference BOM. Mounting dimensions and electrical/thermal limits remain to be verified.
 - Rope capstan reductions targeting approximately **8:1**.
-- ODrive motor controllers; **S1 is the proposed first-prototype baseline**, pending measured current and thermal requirements.
+- **Makerbase MKS XDrive Mini is the preferred motor-controller candidate**, replacing the proposed S1 for cost/availability reasons. Qualify its board-specific legacy firmware, CAN behavior, encoder integration and thermal performance on one actuator first.
 - Arduino **UNO Q preferred**, subject to a CAN, timing, and policy-inference bench test.
 - Walking policies trained on a separate server and executed onboard.
 - Printed structural links and housings with metal bearings, shafts, and fasteners.
@@ -25,6 +25,6 @@ Build and characterize **one actuator and its test fixture**, while developing a
 
 - [Aaed Musa Capstan-Drive](https://github.com/aaedmusa/Capstan-Drive), reviewed at commit `9c032fe83c1d9f3edaa0a6492fcbc8ce92e62ecf`.
 - User-provided `dino.mp4`: visual reference for folded legs, broad feet, and body motion. The video has not been added to this public repository.
-- Official Arduino and ODrive sources are linked in the project plan.
+- Makerbase, Arduino, ODrive and encoder-manufacturer references are linked in the project plan.
 
 Initial plan: 2026-10-26.
