@@ -11,7 +11,7 @@ Date: 2026-10-26. Status: proposed baseline; dimensions and ratings below are no
 | Joint count | 3 in-plane joints plus hip roll per leg; 8 motors total | Interpretation of final user description |
 | Motors | Eaglepower 8308 BLDC, 90 KV | Model identified by user from reference BOM; dimensions/ratings pending |
 | Transmission | Approximately 8:1 rope capstan | User requirement |
-| Motor control | ODrive | User requirement; S1 proposed |
+| Motor control | Makerbase MKS XDrive Mini preferred candidate | User proposes lower-cost ODrive v3.6-based alternative; exact board/firmware to qualify |
 | Main control | Prefer UNO Q, with server-trained walking policy | Preference; validation needed |
 | Structure | Printed links and housings, metal load-bearing hardware | Proposed implementation |
 | CAD exchange | STEP, with editable source retained | Proposed workflow |
@@ -111,9 +111,9 @@ Quantities refer to the full robot; acquire one axis for the first bench milesto
 | --- | --- | --- |
 | Eaglepower 8308 90 KV motors | 8 | Model identified from BOM by user; mounting drawing and ratings to verify |
 | Capstan drive modules | 8 | Approximately 8:1; travel and load qualification required |
-| ODrive S1 | 8 proposed | One motor per controller; confirm thermal packaging |
-| Motor position sensing | 8 channels | S1 onboard encoder where aligned, otherwise compatible external encoders; appropriate magnets |
-| Output absolute encoders | 8 recommended | Actual joint angle, power-up reference, rope-slip/settling detection |
+| Makerbase MKS XDrive Mini | 8 proposed | Preferred candidate; qualify one unit, board revision, firmware and thermal packaging first |
+| Motor position sensing | 8 channels | Mini onboard AS5047P aligned with rotor magnet, or a supported external encoder |
+| Output absolute encoders | 8 recommended | Joint angle, power-up reference and rope-slip detection; MCU acquisition initially, not assumed dual-encoder support in Mini firmware |
 | Motor temperature sensors | 8 recommended | Exact attachment/type to be chosen |
 | UNO Q | 1 preferred | 4 GB option is a candidate; runtime benchmark required |
 | CAN interface | 1 initial bus | MCU-compatible transceiver, or supported USB-CAN for bring-up |
@@ -126,9 +126,24 @@ Quantities refer to the full robot; acquire one axis for the first bench milesto
 | Bearings, shafts, fasteners, cable, connectors | Per final CAD/BOM | Locking connectors and strain relief on moving harnesses |
 | Fall-arrest test support | 1 | Tether gantry or controlled test fixture |
 
-[ODrive S1](https://docs.odriverobotics.com/v/latest/hardware/s1-datasheet.html) is the starting candidate because it matches the reference actuator and offers materially more current headroom than [ODrive Micro](https://docs.odriverobotics.com/v/latest/hardware/micro-datasheet.html). Neither controller rating establishes the motor's allowable current.
+### Controller change: Makerbase MKS XDrive Mini
 
-If using S1 brake resistors, do not connect multiple S1 brake outputs to one shared resistor; follow the controller documentation. A bench supply may not absorb regenerative energy. Size the regeneration path for deceleration and a fully charged battery. A tentative 24 V-class bench bus is a study assumption only, pending exact motor and controller checks.
+The user reports that S1 availability and cost make it unsuitable for this build and proposes a driver like the MKS XDrive Mini. Treat the **Mini as the preferred prototype candidate**, pending confirmation of the purchased board revision and testing. S1 remains part of the upstream actuator reference, not our planned purchase.
+
+[Makerbase's product page](https://makerbase3d.com/product/makerbase-xdrive-mini-high-precision-brushless-servo-motor-controller-based-on-odrive3-6-with-as5047p-on-board/) identifies the Mini as ODrive v3.6-based with an onboard AS5047P. [Makerbase's firmware directory](https://github.com/makerbase-motor/MKS-ODrive/tree/master/Firmware/MKS%20ODrive%20MINI) contains Mini-specific 0.5.1 firmware dated 2025-03-26. This is a different hardware/software target from S1.
+
+Design implications:
+
+- Use the exact Mini-compatible firmware and matching host tools/API. Record the shipped firmware before changing anything. Do not flash S1 firmware or blindly apply current S1 configuration scripts, calibration procedures, GUI assumptions, or CAN message definitions.
+- Use classic CAN as the initial communication target; no CAN-FD capability is assumed. Validate command modes, units, telemetry, watchdog behavior, node IDs and startup behavior against the actual firmware. Check all logical axes/nodes exposed by each board for ID conflicts before combining eight units.
+- Retain position/velocity/torque-control capability as a qualification requirement. Measure low-speed current regulation, reversal behavior and holding temperatures with the Eaglepower 8308 90 KV. Controller advertising does not establish continuous joint torque. No advertised high-current rating has been adopted as a validated operating limit.
+- The onboard AS5047P needs a centered, appropriately spaced diametrically magnetized rotor magnet. Rework the magnet holder and stationary board carrier around the actual encoder location, cooling and connector clearances. If board placement is impractical, assess a supported external motor encoder before releasing CAD.
+- The AS5047P provides single-turn motor angle. At 8:1, one motor revolution is approximately 45 degrees of joint motion, so motor absolute angle alone does not uniquely locate a joint across the planned travel after power loss. Retain an output absolute encoder or a validated homing/reference procedure. Motor sensing also cannot directly observe rope slip.
+- Do not assume S1-style dual-encoder feedback on the Mini. Initially plan to read output encoders with the robot MCU for joint reference and discrepancy monitoring; validate latency and firmware support before closing a load-side servo loop.
+- Start with one board. Demonstrate repeatable calibration/restarts, encoder quality, CAN command/feedback, stale-command shutdown, controlled loaded reversals, regeneration handling and thermal operation before buying the complete set.
+- A [SimpleFOC implementation](https://github.com/simplefoc/mks_xdrive_mini_firmware) exists for this board. Keep it as an alternative development path, not an assumed drop-in firmware replacement; protocol, protection behavior and calibration would need separate validation.
+
+Use a brake-resistor/regeneration arrangement documented for the exact Mini revision and firmware. Give each controller's brake output its own correctly sized resistor when using individual choppers; do not tie independent brake outputs together. Verify dump capacity and configuration under deceleration and with a fully charged battery. A bench supply may not absorb regenerative energy. A tentative 24 V-class bench bus remains a study assumption pending exact motor and controller checks.
 
 ## 6. Control architecture
 
@@ -139,7 +154,7 @@ Proposed responsibilities:
 - Training server: physics simulation, policy training, evaluation, and export of versioned policies.
 - UNO Q Linux: onboard policy inference, state-estimation coordination, operator commands, and logging.
 - MCU: timestamped sensor acquisition, command validation/limits, communication watchdogs, and CAN scheduling.
-- ODrives: encoder-based commutation and fast motor current/servo loops.
+- MKS XDrive Mini controllers: encoder-based commutation and fast motor current/servo loops, subject to selected firmware qualification.
 
 Training is remote; walking does not depend on a live Wi-Fi connection. Start with a small proprioceptive policy and test CPU inference before depending on GPU acceleration. Inputs include body orientation/angular rate, joint position/velocity, command velocity, and previous actions; foot contact can augment observations. Start with bounded joint-position targets and validated local gains. Torque policies are a later option after actuator identification.
 
@@ -149,9 +164,9 @@ Initial performance targets, not validated guarantees:
 - Local MCU sensor/supervision loop: approximately 500 Hz.
 - Eight-axis command and principal feedback traffic: initially approximately 200 Hz, subject to measured bus load and latency.
 
-At 200 Hz, one 8-byte command plus one feedback frame per axis, using about 130 bits/frame for planning, consumes approximately 416 kbit/s for eight axes. Extra telemetry, stuffing variation, arbitration and retries require headroom. Do not assume a single 1 Mbit/s bus can deliver every message for eight axes at 1 kHz. Add a second bus or validated CAN-FD path if required.
+At 200 Hz, one 8-byte command plus one feedback frame per axis, using about 130 bits/frame for planning, consumes approximately 416 kbit/s for eight axes. Extra telemetry, stuffing variation, arbitration and retries require headroom. Do not assume a single 1 Mbit/s bus can deliver every message for eight axes at 1 kHz. Add a second classic CAN bus if required; the selected Mini path does not assume CAN-FD.
 
-The [CAN guide](https://docs.odriverobotics.com/v/latest/guides/can-guide.html) defines ODrive CANSimple and physical-bus requirements. Bench-verify UNO Q MCU driver support, transceiver interface, Linux/MCU timing, and end-to-end latency before committing. Hardware CAN capability is not proof that the installed Arduino software exposes a working API. Keep USB-CAN for initial Linux bench control or a separate real-time CAN bridge as fallback options.
+Use the CAN protocol and configuration documented by the selected Makerbase firmware; the modern [ODrive CAN guide](https://docs.odriverobotics.com/v/latest/guides/can-guide.html) is background on bus wiring, not a Mini API specification. Bench-verify UNO Q MCU driver support, transceiver interface, Linux/MCU timing, and end-to-end latency before committing. Hardware CAN capability is not proof that the installed Arduino software exposes a working API. Keep a compatible USB-CAN adapter for initial Linux bench control or a separate real-time CAN bridge as fallback options.
 
 Use an independent hardware stop path and controller watchdogs; demonstrate stale-command handling before supporting robot weight. Loss of power can make a backdrivable robot collapse, so the tether is part of initial integration. Distinguish a planned controlled stop from emergency power removal.
 
@@ -168,9 +183,12 @@ Simple analytical/IK motions come before learned walking. Preserve identical joi
 
 ## 8. Decisions needed before detailed CAD
 
-The user identified the reference BOM motor as Eaglepower 8308 on 2026-10-26; retain the specified 90 KV winding. Highest priority is now verifying its mounting drawing, dimensions, mass, and electrical/thermal ratings against the reference assembly or manufacturer documentation. Next: whole-robot target mass, desired initial walking speed, runtime, available ODrive hardware, intended print material, and CAD authoring tool. Until specified, assume slow indoor walking, passive cosmetic head/tail, no payload, and defer the battery purchase.
+The user identified the reference BOM motor as Eaglepower 8308 on 2026-10-26; retain the specified 90 KV winding. Highest priority is now verifying its mounting drawing, dimensions, mass, and electrical/thermal ratings against the reference assembly or manufacturer documentation. Next: whole-robot target mass, desired initial walking speed, runtime, exact Mini hardware/firmware revision, intended print material, and CAD authoring tool. Until specified, assume slow indoor walking, passive cosmetic head/tail, no payload, and defer the battery purchase.
 
 ## 9. Source provenance
+
+- Makerbase product page and Mini firmware inventory reviewed for the controller change. Firmware repository tree observed at `e15782976ae93d42b1f0648ceec96503141a343b`; the directory includes `MKS_ODrive_MINI_0_5_1_20250326.bin` and `.hex`. Firmware has not been flashed or bench-tested.
+- Encoder reference: [ams AS5047P datasheet, manufacturer document hosted by Mouser](https://www.mouser.com/datasheet/2/588/AS5047P_DS000324_2-00-1843440.pdf). Its 14-bit angle is a single-turn measurement, not a multi-turn joint reference.
 
 - Capstan repository reviewed at [9c032fe83c1d9f3edaa0a6492fcbc8ce92e62ecf](https://github.com/aaedmusa/Capstan-Drive/tree/9c032fe83c1d9f3edaa0a6492fcbc8ce92e62ecf).
 - Its STEP directory contains drums, base plate, brace, slider, motor magnet holder, ODrive cover, assembly jig, and a zipped test-stand assembly.
