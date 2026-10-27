@@ -8,7 +8,7 @@ Date: 2026-10-26. Status: proposed baseline; dimensions and ratings below are no
 | --- | --- | --- |
 | Torso-top height | 500 mm from floor in nominal standing pose | User requirement |
 | Appearance | Dodo-like rounded torso and folded bird legs | User requirement |
-| Joint count | 3 in-plane joints plus hip roll per leg; 8 motors total | Interpretation of final user description |
+| Joint count | 5 actuators per leg; 10 motors total, including two hip pitch/yaw motors | User correction; detailed transmission arrangement pending |
 | Motors | Eaglepower 8308 BLDC, 90 KV | Model identified by user from reference BOM; dimensions/ratings pending |
 | Transmission | Approximately 8:1 rope capstan | User requirement |
 | Motor control | Makerbase MKS XDrive Mini preferred candidate | User proposes lower-cost ODrive v3.6-based alternative; exact board/firmware to qualify |
@@ -22,20 +22,21 @@ The 24.6-second reference video shows a compact biped with folded legs, broad fe
 
 ## 2. Leg architecture
 
-Use one serial four-joint chain per side:
+Use five actuators per leg, ten total. The user confirms that the reference has two motors for hip pitch/yaw. The working joint allocation below adds hip yaw to the previous hip roll, hip pitch, knee pitch and ankle/hock pitch layout. This allocation preserves the three in-plane joints; it does not add a second hip pitch joint. Verify the hip axis order and whether the pitch/yaw motors act independently or through a coupled transmission before freezing CAD or simulation kinematics:
 
 | Joint | Axis in neutral body frame | Function |
 | --- | --- | --- |
 | Hip roll | X, forward | Moves the entire leg plane sideways for lateral foot placement |
-| Hip pitch | Y, left | Swings the leg forward/backward |
-| Knee pitch | Y in the rolled leg frame | Changes reach and crouch |
-| Ankle/hock pitch | Y in the rolled leg frame | Controls distal-foot pitch |
+| Hip pitch | Local Y, left in neutral pose | Swings the leg forward/backward; one of the two pitch/yaw functions |
+| Hip yaw | Local Z, up in neutral pose | Changes leg/foot heading; the other pitch/yaw function |
+| Knee pitch | Local Y after the hip rotations | Changes reach and crouch |
+| Ankle/hock pitch | Local Y after the hip rotations | Controls distal-foot pitch |
 
-Body convention: X forward, Y left, Z up. Name joints left/right consistently and verify encoder signs on hardware. Hip roll is not yaw: this layout does not offer independent toe-heading control. Turning and sideways balance must be demonstrated in simulation; add no yaw or ankle-roll actuator unless testing makes the need clear.
+Body convention: X forward, Y left, Z up. Name joints left/right consistently and verify encoder signs on hardware. Hip roll and hip yaw are separate functions. Yaw is now included for heading control; no ankle-roll actuator is planned. Turning and sideways balance still require simulation validation. If hip pitch/yaw uses a differential, derive motor-to-joint position, velocity and torque mappings and enforce the coupled motor limits rather than assuming one motor command equals one joint command.
 
 Bird anatomy needs care: the conspicuous rearward bend is the hock/ankle; the knee is higher and bends forward. For version one, explore a short upper leg partly concealed in the body, a rearward-sloping shank, and an elongated rigid distal-foot assembly ending in a broad sole. That keeps three independent pitch joints without requiring a fourth powered toe joint. The full foot geometry must allow a useful flat contact pose.
 
-Begin with direct joint-mounted actuators for clear kinematics. Compare a remotely driven distal joint only if ankle mass or packaging is unacceptable; remote cables/linkages add compliance and coupling that must be modeled. Keep the battery and as many heavy components as practical near the pelvis. Make the head, beak, and tail lightweight and passive initially.
+Use direct joint-mounted actuators where appropriate, while leaving the hip pitch/yaw transmission topology open until inspected. Compare a remotely driven distal joint only if ankle mass or packaging is unacceptable; remote cables/linkages add compliance and coupling that must be modeled. Keep the battery and as many heavy components as practical near the pelvis. Make the head, beak, and tail lightweight and passive initially.
 
 ### Starting CAD envelope, not frozen dimensions
 
@@ -61,7 +62,7 @@ Therefore:
 - Use the existing 8.55:1 design as an approximately-8:1 prototype reference. Measure actual ratio and variation through travel rather than assuming pulley outside diameters determine it.
 - Review the STEP geometry before choosing bearing sizes, hole patterns, or motor mounting dimensions.
 - Treat 120 degrees as a reference travel limit, not a guaranteed usable range for every joint. Clock each joint around its nominal pose, reserve stopping margin, and check walking/crouching travel before freezing drums.
-- The 852 g number includes a test-stand implementation; it is not a measured robot joint-module mass. Eight exact copies would be 6.82 kg before the rest of the robot. Weigh a stripped-down module and make an itemized whole-robot mass budget.
+- The 852 g number includes a test-stand implementation; it is not a measured robot joint-module mass. Ten exact copies would be 8.52 kg before the rest of the robot. Weigh a stripped-down module and make an itemized whole-robot mass budget.
 - Do not assume KV determines continuous torque. For the selected Eaglepower 8308 90 KV, verify winding resistance, pole count, dimensions, mass, voltage/current guidance, and thermistor provision.
 - Characterize low-speed holding and reversal heating without propeller airflow. A drone power rating is not a standing-joint torque rating.
 
@@ -94,7 +95,7 @@ Capstan load example: 10 N m on a 40 mm effective output radius requires a tensi
 | 1 | Parametric skeleton and hardware envelopes | Joint centers/axes, folded stance, 500 mm torso top, motor clearances, motion ranges, center of mass |
 | 2 | Actuator cartridge | Motor mount, small/large drums, rope anchors, adjustable tensioner, paired output-bearing supports, shaft/hub, encoder mounts, stops and guard |
 | 3 | Bench test fixture | Rigid mount, known-length torque arm/load-cell interface, travel measurement, temperature sensing, guarded rope path |
-| 4 | Hip roll yoke and pitch carrier | Orthogonal axes, short offsets, supported load path, service access and cable flex |
+| 4 | Hip roll support and pitch/yaw assembly | Three hip rotation functions; verify axis order, pitch/yaw coupling, short offsets, supported load path, service access and cable flex |
 | 5 | One complete leg | Upper/shank links, hock mount, broad foot, replaceable TPU sole, contact sensor mount, accessible tensioners |
 | 6 | Pelvis and torso frame | Both hips, battery adjustment, electronics cooling, power distribution, IMU datum, lifting/tether points |
 | 7 | Cosmetic shell | Removable dodo body/head/tail after balance and mass distribution work |
@@ -109,12 +110,12 @@ Quantities refer to the full robot; acquire one axis for the first bench milesto
 
 | Component | Quantity | Selection notes |
 | --- | --- | --- |
-| Eaglepower 8308 90 KV motors | 8 | Model identified from BOM by user; mounting drawing and ratings to verify |
-| Capstan drive modules | 8 | Approximately 8:1; travel and load qualification required |
-| Makerbase MKS XDrive Mini | 8 proposed | Preferred candidate; qualify one unit, board revision, firmware and thermal packaging first |
-| Motor position sensing | 8 channels | Mini onboard AS5047P aligned with rotor magnet, or a supported external encoder |
-| Output absolute encoders | 8 recommended | Joint angle, power-up reference and rope-slip detection; MCU acquisition initially, not assumed dual-encoder support in Mini firmware |
-| Motor temperature sensors | 8 recommended | Exact attachment/type to be chosen |
+| Eaglepower 8308 90 KV motors | 10 | Model identified from BOM by user; mounting drawing and ratings to verify |
+| Capstan drive modules | 10 | Approximately 8:1; travel and load qualification required |
+| Makerbase MKS XDrive Mini | 10 proposed | Preferred candidate; qualify one unit, board revision, firmware and thermal packaging first |
+| Motor position sensing | 10 channels | Mini onboard AS5047P aligned with rotor magnet, or a supported external encoder |
+| Output absolute encoders | 10 recommended | Joint angle, power-up reference and rope-slip detection; MCU acquisition initially, not assumed dual-encoder support in Mini firmware |
+| Motor temperature sensors | 10 recommended | Exact attachment/type to be chosen |
 | UNO Q | 1 preferred | 4 GB option is a candidate; runtime benchmark required |
 | CAN interface | 1 initial bus | MCU-compatible transceiver, or supported USB-CAN for bring-up |
 | IMU | 1 | Rigid pelvis mounting, calibrated frame and timestamped readings |
@@ -135,7 +136,7 @@ The user reports that S1 availability and cost make it unsuitable for this build
 Design implications:
 
 - Use the exact Mini-compatible firmware and matching host tools/API. Record the shipped firmware before changing anything. Do not flash S1 firmware or blindly apply current S1 configuration scripts, calibration procedures, GUI assumptions, or CAN message definitions.
-- Use classic CAN as the initial communication target; no CAN-FD capability is assumed. Validate command modes, units, telemetry, watchdog behavior, node IDs and startup behavior against the actual firmware. Check all logical axes/nodes exposed by each board for ID conflicts before combining eight units.
+- Use classic CAN as the initial communication target; no CAN-FD capability is assumed. Validate command modes, units, telemetry, watchdog behavior, node IDs and startup behavior against the actual firmware. Check all logical axes/nodes exposed by each board for ID conflicts before combining ten units.
 - Retain position/velocity/torque-control capability as a qualification requirement. Measure low-speed current regulation, reversal behavior and holding temperatures with the Eaglepower 8308 90 KV. Controller advertising does not establish continuous joint torque. No advertised high-current rating has been adopted as a validated operating limit.
 - The onboard AS5047P needs a centered, appropriately spaced diametrically magnetized rotor magnet. Rework the magnet holder and stationary board carrier around the actual encoder location, cooling and connector clearances. If board placement is impractical, assess a supported external motor encoder before releasing CAD.
 - The AS5047P provides single-turn motor angle. At 8:1, one motor revolution is approximately 45 degrees of joint motion, so motor absolute angle alone does not uniquely locate a joint across the planned travel after power loss. Retain an output absolute encoder or a validated homing/reference procedure. Motor sensing also cannot directly observe rope slip.
@@ -162,9 +163,9 @@ Initial performance targets, not validated guarantees:
 
 - Policy: 50-100 Hz onboard.
 - Local MCU sensor/supervision loop: approximately 500 Hz.
-- Eight-axis command and principal feedback traffic: initially approximately 200 Hz, subject to measured bus load and latency.
+- Ten-axis command and principal feedback traffic: initially approximately 200 Hz, subject to measured bus load and latency.
 
-At 200 Hz, one 8-byte command plus one feedback frame per axis, using about 130 bits/frame for planning, consumes approximately 416 kbit/s for eight axes. Extra telemetry, stuffing variation, arbitration and retries require headroom. Do not assume a single 1 Mbit/s bus can deliver every message for eight axes at 1 kHz. Add a second classic CAN bus if required; the selected Mini path does not assume CAN-FD.
+At 200 Hz, one 8-byte command plus one feedback frame per axis, using about 130 bits/frame for planning, consumes approximately 520 kbit/s for ten axes (52% of a 1 Mbit/s bus before additional traffic). Extra telemetry, stuffing variation, arbitration and retries require headroom. Reassess two buses (one per leg) or lower message rates after measuring the full ten-controller traffic load. Do not assume a single 1 Mbit/s bus can deliver every message for ten axes at 1 kHz. Add a second classic CAN bus if required; the selected Mini path does not assume CAN-FD.
 
 Use the CAN protocol and configuration documented by the selected Makerbase firmware; the modern [ODrive CAN guide](https://docs.odriverobotics.com/v/latest/guides/can-guide.html) is background on bus wiring, not a Mini API specification. Bench-verify UNO Q MCU driver support, transceiver interface, Linux/MCU timing, and end-to-end latency before committing. Hardware CAN capability is not proof that the installed Arduino software exposes a working API. Keep a compatible USB-CAN adapter for initial Linux bench control or a separate real-time CAN bridge as fallback options.
 
@@ -172,7 +173,7 @@ Use an independent hardware stop path and controller watchdogs; demonstrate stal
 
 ## 7. Simulation and build milestones
 
-1. **Requirements and envelopes:** verify selected motor geometry and ratings, inventory masses, create the kinematic skeleton, and check 120-degree travel feasibility. Exit: a collision-checked nominal stance and candidate step cycle at 500 mm torso height.
+1. **Requirements and envelopes:** verify selected motor geometry and ratings, inventory masses for ten actuators, resolve the hip pitch/yaw transmission and axis order, create the five-joint-per-leg kinematic skeleton, and check 120-degree travel feasibility. Exit: a collision-checked nominal stance and candidate step cycle at 500 mm torso height.
 2. **One actuator:** characterize output torque/current, backdrive behavior, ratio, reversal lost motion, thermal settling, usable travel, and repeated-cycle rope tension. Exit: documented continuous/peak limits and module mass sufficient for a plausible whole-robot budget.
 3. **One leg on a fixture:** verify encoder signs, hard/soft limits, foot trajectories, contact detection, and load-bearing motion. Exit: repeatable stance/swing cycles under representative load without excessive heat, slip, or structural deformation.
 4. **Whole robot in simulation:** use measured link mass/inertia, actuator dynamics, torque/speed limits, contact geometry, latency, and rope compliance. Evaluate standing and stepping; randomize uncertain friction, mass, delays and actuation. Exit: robust policy across the intended operating range with realistic limits.
@@ -186,6 +187,9 @@ Simple analytical/IK motions come before learned walking. Preserve identical joi
 The user identified the reference BOM motor as Eaglepower 8308 on 2026-10-26; retain the specified 90 KV winding. Highest priority is now verifying its mounting drawing, dimensions, mass, and electrical/thermal ratings against the reference assembly or manufacturer documentation. Next: whole-robot target mass, desired initial walking speed, runtime, exact Mini hardware/firmware revision, intended print material, and CAD authoring tool. Until specified, assume slow indoor walking, passive cosmetic head/tail, no payload, and defer the battery purchase.
 
 ## 9. Source provenance
+
+- User correction: the reference has five actuators per leg, including two motors for hip pitch/yaw. Ten total actuators supersedes the earlier eight-actuator interpretation. Detailed hip coupling has not been independently established from the video.
+
 
 - Makerbase product page and Mini firmware inventory reviewed for the controller change. Firmware repository tree observed at `e15782976ae93d42b1f0648ceec96503141a343b`; the directory includes `MKS_ODrive_MINI_0_5_1_20250326.bin` and `.hex`. Firmware has not been flashed or bench-tested.
 - Encoder reference: [ams AS5047P datasheet, manufacturer document hosted by Mouser](https://www.mouser.com/datasheet/2/588/AS5047P_DS000324_2-00-1843440.pdf). Its 14-bit angle is a single-turn measurement, not a multi-turn joint reference.
