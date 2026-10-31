@@ -38,5 +38,17 @@ class FeasibilityTests(unittest.TestCase):
         self.assertIn('joint_margin',g['reasons'])
         self.assertGreater(g['com_support_margin_m'],.002)
 
+    def test_release_com_target_is_a_search_hint_not_a_physical_constraint(self):
+        self.s.joint_margin=np.deg2rad(.5)
+        g=self.s.geometry(self.balance,1,target=self.s.r.c0,lift=.025,release=True)
+        self.assertGreater(g['com_target_error_m'],.002)
+        self.assertNotIn('com_target',g['reasons'])
+        self.assertNotIn('release_com_margin',g['reasons'])
+
+    def test_checkpoint_serializes_numpy_booleans(self):
+        self.s.report['numpy_boolean']=np.bool_(True)
+        self.s.save()
+        self.assertTrue(json.loads(Path(self.s.a.output).read_text())['numpy_boolean'])
+
 
 if __name__=='__main__':unittest.main()

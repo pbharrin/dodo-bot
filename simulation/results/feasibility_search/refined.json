@@ -1,0 +1,2850 @@
+{
+  "status": "RUNNING",
+  "planning_only": true,
+  "forward_dynamics_steps": 0,
+  "started_utc": "2026-10-31T21:01:50.100160+00:00",
+  "parameters": {
+    "model": "simulation/models/dodo_floating.xml",
+    "output": "simulation/results/feasibility_search/refined.json",
+    "support": "left",
+    "budget_seconds": 300.0,
+    "max_candidates": 41,
+    "max_paths": 2,
+    "path_knots": 64,
+    "max_nfev": 160,
+    "clearance_mm": 5.0,
+    "joint_margin_deg": 2.0,
+    "torque_limit": 3.8,
+    "seed": 20261031
+  },
+  "model_sha256": "221a508b97a0a16b66a7dec9a6afc3cb43232b1873c3cc5a2b6a64424ab2ccd0",
+  "script_sha256": "ec5534fcf7dbae32c6b56c14c93079b387f77f900799f70e7554d5958a29e6ac",
+  "controller_dependency_sha256": "29601ea3f5c66a9c4ffc9807df3047a3f389b34107c5d25b0bdb2cc54036fb50",
+  "seed_qpos": {
+    "neutral": [
+      0.0,
+      0.0,
+      0.395,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "previous_release": [
+      0.0413459125728232,
+      0.04089966489632954,
+      0.27625748027305747,
+      0.8778139559827947,
+      -0.1925976638189504,
+      -0.2003561538730746,
+      -0.39013614313276296,
+      0.7753981633974482,
+      0.5135987755982987,
+      1.230893543366789,
+      -0.9802762720507493,
+      -0.017256552099995656,
+      0.2870717413613254,
+      0.002680027891613864,
+      1.298996938995747,
+      -1.1245175676190167,
+      -1.0371975511965974
+    ],
+    "known_balance": [
+      0.004261604859914214,
+      0.03931512953761017,
+      0.3183174320451679,
+      0.884445220887356,
+      -0.20416667887872636,
+      0.1695833501642421,
+      0.38381519750033233,
+      -0.7753966372465789,
+      0.5135980167178317,
+      0.16309475915395147,
+      -0.9075042500267433,
+      0.5791899583434992,
+      0.2678547639851996,
+      0.5134658090969332,
+      -1.2869943904584924,
+      -0.007425146046861667,
+      0.7335133085741596
+    ],
+    "yaw_-1": [
+      0.0,
+      0.0,
+      0.395,
+      0.9689124217106447,
+      0.0,
+      0.0,
+      -0.24740395925452294,
+      0.4,
+      0.0,
+      0.3,
+      -0.6,
+      0.3,
+      0.4,
+      0.0,
+      0.3,
+      -0.6,
+      0.3
+    ],
+    "yaw_1": [
+      0.0,
+      0.0,
+      0.395,
+      0.9689124217106447,
+      0.0,
+      0.0,
+      0.24740395925452294,
+      -0.4,
+      0.0,
+      0.3,
+      -0.6,
+      0.3,
+      -0.4,
+      0.0,
+      0.3,
+      -0.6,
+      0.3
+    ]
+  },
+  "versions": {
+    "mujoco": "3.17.0",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0"
+  },
+  "thresholds": {
+    "body_clearance_m": 0.005,
+    "joint_margin_deg": 2.0,
+    "contact_position_tolerance_m": 0.0005,
+    "support_tilt_deg": 0.25,
+    "com_target_tolerance_m": 0.002,
+    "com_support_margin_m": 0.002,
+    "floor_penetration_tolerance_m": 0.001,
+    "torque_limit_Nm": 3.8,
+    "release_swing_force_max_N": 1.015335,
+    "friction_pyramid_mu": 0.8
+  },
+  "trials": [
+    {
+      "id": 0,
+      "pivot": 2,
+      "seed": "yaw_-1",
+      "com_target_m": [
+        0.03483183373938291,
+        0.055,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0006158438340378162,
+        "support_rotation_error_deg": 0.3412283603232767,
+        "pivot_error_m": 0.0004503918262055287,
+        "swing_clearance_m": -0.0006956277131255507,
+        "minimum_body_clearance_m": 0.005925318487708768,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.004660327428385,
+        "closest_joint_limit": "right_hip_roll",
+        "com_m": [
+          0.034673567084259685,
+          0.04464275513207275,
+          0.23057395785402338
+        ],
+        "com_support_margin_m": -0.002928412419211244,
+        "com_target_error_m": 0.010374343218080092,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 66,
+      "cost": 16.71870988654682,
+      "qpos": [
+        0.060962859598741634,
+        0.03642107410433213,
+        0.257778358140409,
+        0.9102824119729498,
+        -0.2500060978379708,
+        0.04985807474906229,
+        -0.32618561261781115,
+        0.7501946273492519,
+        0.4305083016391132,
+        0.9396438071584375,
+        -1.2461457080122373,
+        0.02298938879218963,
+        0.2052226807455228,
+        0.4886108525005659,
+        0.5442314903645519,
+        -1.0241783977288856,
+        0.45136083020961215
+      ]
+    },
+    {
+      "id": 1,
+      "pivot": 2,
+      "seed": "neutral",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.00042097108641845287,
+        "support_rotation_error_deg": 0.3254959998928465,
+        "pivot_error_m": 4.46153551419799e-05,
+        "swing_clearance_m": -0.00019322101281897194,
+        "minimum_body_clearance_m": 0.0059388343437746585,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.000000000003683,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.02512246489255784,
+          0.04775452563673641,
+          0.2900783666711688
+        ],
+        "com_support_margin_m": 0.00036843349001748973,
+        "com_target_error_m": 0.007246042278299407,
+        "reasons": [
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": false,
+      "nfev": 160,
+      "cost": 8.386431994053416,
+      "qpos": [
+        -0.007815607722920743,
+        0.03941853422237084,
+        0.3430071506469207,
+        0.8610828230253184,
+        -0.14451817779164777,
+        -0.2847518154342354,
+        -0.39568582459501495,
+        0.7504915781765309,
+        0.48869219055834795,
+        0.8971046406445169,
+        -0.4876739657235778,
+        0.030908228666827527,
+        0.14866633744224936,
+        0.2738714875390958,
+        0.7253190081473893,
+        -0.5211451949756052,
+        0.4368205317032672
+      ]
+    },
+    {
+      "id": 2,
+      "pivot": 3,
+      "seed": "yaw_1",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0007355610924235744,
+        "support_rotation_error_deg": 0.5503392753655687,
+        "pivot_error_m": 4.0583285909912174e-05,
+        "swing_clearance_m": -0.0001894640179711249,
+        "minimum_body_clearance_m": 0.029708888368572467,
+        "closest_body_pair": [
+          "torso_geom",
+          "right_shank_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004878904374611161,
+          0.04261369170547822,
+          0.29002703061749197
+        ],
+        "com_support_margin_m": -0.005026682378945203,
+        "com_target_error_m": 0.012386427227652123,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 66,
+      "cost": 24.419419884606185,
+      "qpos": [
+        0.03612369543399326,
+        0.04094245243308809,
+        0.33263776872090944,
+        0.8871197422374303,
+        -0.3244117337934684,
+        -0.18079306619828006,
+        0.27402455569589984,
+        -0.7504915783575615,
+        0.4886921905584122,
+        1.2740903539558548,
+        -0.9649763766979403,
+        0.2909701960135799,
+        -0.7504915783575615,
+        0.33249145008015885,
+        1.1297728831181724,
+        -0.7673837887440333,
+        1.0090412721450086
+      ]
+    },
+    {
+      "id": 3,
+      "pivot": 3,
+      "seed": "neutral",
+      "com_target_m": [
+        0.004831833739382906,
+        0.065,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.001586911712703603,
+        "support_rotation_error_deg": 1.1683915402016498,
+        "pivot_error_m": 0.0010733750675401476,
+        "swing_clearance_m": -0.0014187189454828684,
+        "minimum_body_clearance_m": 0.005756679991436718,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 3.049551311064613,
+        "closest_joint_limit": "right_hip_roll",
+        "com_m": [
+          0.006006426901403817,
+          0.04041850989607031,
+          0.29187594973328357
+        ],
+        "com_support_margin_m": -0.007963165138200341,
+        "com_target_error_m": 0.024680934184663,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 51,
+      "cost": 105.28903289188332,
+      "qpos": [
+        0.02432611228394918,
+        0.031422810421940325,
+        0.3406553498425456,
+        0.9490918296317932,
+        -0.20608770124725906,
+        0.026998725999008176,
+        -0.23669310745187816,
+        0.5178362366946526,
+        0.3678519156427215,
+        0.4657286585268037,
+        -0.7704832899166888,
+        0.1445869753276133,
+        -0.1431354534505681,
+        0.47037406451171154,
+        0.28971444457941387,
+        -0.3369847911086723,
+        0.15112898711191075
+      ]
+    },
+    {
+      "id": 4,
+      "pivot": 0,
+      "seed": "yaw_1",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008901516115309939,
+        "support_rotation_error_deg": 0.5410353372963759,
+        "pivot_error_m": 0.00033521115815664764,
+        "swing_clearance_m": -0.0005187455399840602,
+        "minimum_body_clearance_m": 0.0504541663480701,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.0008677588463364,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.005100125453659106,
+          0.03890447156760651,
+          0.23022958205169217
+        ],
+        "com_support_margin_m": -0.008892241257489324,
+        "com_target_error_m": 0.016099401351615392,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 56,
+      "cost": 38.42627158555041,
+      "qpos": [
+        0.029094005527524853,
+        0.040381596696424334,
+        0.26142452032705193,
+        0.8747704519467158,
+        -0.16727779928124512,
+        0.2387164311277443,
+        0.3870520117221911,
+        -0.7504372133686956,
+        0.48867704530943035,
+        0.28178088704714055,
+        -1.2677588489269576,
+        0.653252726567327,
+        -0.4532225632015675,
+        0.3655664481447021,
+        0.4871710871249369,
+        -0.9990297201287461,
+        0.050982067415503964
+      ]
+    },
+    {
+      "id": 5,
+      "pivot": 2,
+      "seed": "neutral",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.00041312830199309445,
+        "support_rotation_error_deg": 0.24896021760718492,
+        "pivot_error_m": 2.790936676720484e-05,
+        "swing_clearance_m": -0.0002029762227111591,
+        "minimum_body_clearance_m": 0.005945099079786364,
+        "closest_body_pair": [
+          "left_shank_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.025145377854880645,
+          0.04796075284565394,
+          0.23003115007693511
+        ],
+        "com_support_margin_m": 0.0005707741717635474,
+        "com_target_error_m": 0.007039352963071123,
+        "reasons": [
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 147,
+      "cost": 7.402274459042691,
+      "qpos": [
+        -0.002813671314779494,
+        0.038618076932843255,
+        0.26335312409503836,
+        0.876522542614794,
+        -0.16731581914118934,
+        -0.2325931518691498,
+        -0.386799786267759,
+        0.7504915783575615,
+        0.4886921905584122,
+        1.2740903539558603,
+        -1.1655488731214398,
+        0.21249505668321245,
+        0.16324582729958861,
+        0.3600586978042669,
+        0.9372420225547481,
+        -1.1354916987894141,
+        0.7387768773249471
+      ]
+    },
+    {
+      "id": 6,
+      "pivot": 2,
+      "seed": "neutral",
+      "com_target_m": [
+        0.004831833739382906,
+        0.065,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008752983015353195,
+        "support_rotation_error_deg": 0.5927278237312261,
+        "pivot_error_m": 5.2959421986433493e-05,
+        "swing_clearance_m": -0.00020756992769787631,
+        "minimum_body_clearance_m": 0.005868191618932893,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004882346093203769,
+          0.05015653179188168,
+          0.260409471395994
+        ],
+        "com_support_margin_m": 0.0023834821715970986,
+        "com_target_error_m": 0.014849200879759324,
+        "reasons": [
+          "support_position",
+          "support_orientation"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 126,
+      "cost": 33.959292081200466,
+      "qpos": [
+        0.034237483993278944,
+        0.04101006853320918,
+        0.3027247730895209,
+        0.845863013878531,
+        -0.12662068883428967,
+        -0.32802826254035783,
+        -0.4010990175582733,
+        0.7504915783575615,
+        0.4886921905584122,
+        1.2740903539558537,
+        -0.6540537776531787,
+        -0.08074023359411305,
+        0.2392081761261137,
+        0.17532886672658582,
+        1.1428362769025449,
+        -0.9272633754480202,
+        0.49143615057271745
+      ]
+    },
+    {
+      "id": 7,
+      "pivot": 1,
+      "seed": "yaw_-1",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.00035723755037701555,
+        "support_rotation_error_deg": 0.2708918094876644,
+        "pivot_error_m": 3.4544344669663395e-05,
+        "swing_clearance_m": -0.00018246674420185904,
+        "minimum_body_clearance_m": 0.005967141896416721,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.02524020149336882,
+          0.04884092576654734,
+          0.2902965570424657
+        ],
+        "com_support_margin_m": 0.0015199405364259566,
+        "com_target_error_m": 0.006166630406257059,
+        "reasons": [
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 94,
+      "cost": 6.025053438810585,
+      "qpos": [
+        0.004463070035636048,
+        0.03900423318805499,
+        0.3363010603118403,
+        0.8351424022546995,
+        -0.11108755371004395,
+        -0.3542677576182225,
+        -0.40582148696086107,
+        0.7504915783575615,
+        0.4886921905584122,
+        1.0634197443409132,
+        -0.4072452427613548,
+        -0.051806855340629794,
+        0.13442923493844564,
+        -0.3293484338964115,
+        1.274090353955834,
+        -0.8558225944043285,
+        -1.0122909661567108
+      ]
+    },
+    {
+      "id": 8,
+      "pivot": 0,
+      "seed": "known_balance",
+      "com_target_m": [
+        0.004831833739382906,
+        0.065,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0013597097061930445,
+        "support_rotation_error_deg": 0.9615998122939783,
+        "pivot_error_m": 0.0001319590476169935,
+        "swing_clearance_m": -0.00021763134837477632,
+        "minimum_body_clearance_m": 0.03812304812458169,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.0000055194112583,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.0048473815717047656,
+          0.04114553245346296,
+          0.2609226898890478
+        ],
+        "com_support_margin_m": -0.00704640661903538,
+        "com_target_error_m": 0.023872310744777723,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": false,
+      "nfev": 160,
+      "cost": 87.64874268472065,
+      "qpos": [
+        0.02194488422401984,
+        0.04340311567339809,
+        0.3051154710235627,
+        0.8369281454119869,
+        -0.11902458926847005,
+        0.3509908504489559,
+        0.4027280092914359,
+        -0.7498194497460251,
+        0.488692094226513,
+        -0.28099418627516964,
+        -0.8223157459012723,
+        0.5124450703329018,
+        -0.39775529442789975,
+        0.2685623915239568,
+        0.008207086778196128,
+        -0.7803073134974086,
+        0.04811799756845279
+      ]
+    },
+    {
+      "id": 9,
+      "pivot": 2,
+      "seed": "neutral",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.00036633479102302617,
+        "support_rotation_error_deg": 0.2864339164290881,
+        "pivot_error_m": 0.00027455243003119464,
+        "swing_clearance_m": -0.00012011039589338718,
+        "minimum_body_clearance_m": 0.005835629160108088,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.000000000000006,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004949773227146447,
+          0.04868223128139704,
+          0.29014685696446985
+        ],
+        "com_support_margin_m": 0.0013864950196614892,
+        "com_target_error_m": 0.006320575786472729,
+        "reasons": [
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": false,
+      "nfev": 160,
+      "cost": 6.597491551498896,
+      "qpos": [
+        0.029774340179375608,
+        0.039105822209763,
+        0.3423174509757591,
+        0.8442204466967301,
+        -0.12198784525056665,
+        -0.3319621891474193,
+        -0.40275539470843874,
+        0.7504915783575615,
+        0.4886921905584121,
+        1.0182822947414853,
+        -0.29034927054068504,
+        -0.17677197319249616,
+        0.16000733424365313,
+        0.1423228769545472,
+        0.9723058383135927,
+        -0.6154219336014685,
+        0.3830634312640796
+      ]
+    },
+    {
+      "id": 10,
+      "pivot": 1,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0004319050374014133,
+        "support_rotation_error_deg": 0.29007751892972505,
+        "pivot_error_m": 3.500423759928433e-05,
+        "swing_clearance_m": -0.0001837478811652915,
+        "minimum_body_clearance_m": 0.005953584674940761,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004783007919570119,
+          0.04761268023443582,
+          0.2602075386886534
+        ],
+        "com_support_margin_m": 0.00023149739228447638,
+        "com_target_error_m": 0.007390395766578643,
+        "reasons": [
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 19,
+      "cost": 8.360567785314757,
+      "qpos": [
+        0.04109489113583726,
+        0.03896526344750574,
+        0.29026512824298667,
+        0.8810909489963462,
+        -0.17535984347904757,
+        -0.2150296628333759,
+        -0.3830011866737318,
+        0.7504915783575615,
+        0.4886921905584122,
+        1.1815818449929567,
+        -0.8664646069421709,
+        -0.03451731849814813,
+        0.2339783728769079,
+        -0.05451381738799514,
+        1.2740903539557757,
+        -1.0518812120747285,
+        -1.0122909661566222
+      ]
+    },
+    {
+      "id": 11,
+      "pivot": 2,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.03483183373938291,
+        0.065,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.001781553856520129,
+        "support_rotation_error_deg": 1.1296241916710614,
+        "pivot_error_m": 0.0028157772928378484,
+        "swing_clearance_m": -0.002954548104091721,
+        "minimum_body_clearance_m": 0.02392191896678824,
+        "closest_body_pair": [
+          "torso_geom",
+          "left_shank_geom"
+        ],
+        "min_joint_margin_deg": 6.065382792748484,
+        "closest_joint_limit": "left_hip_yaw",
+        "com_m": [
+          0.06747279489153447,
+          0.03298467201722294,
+          0.2592963807844443
+        ],
+        "com_support_margin_m": -0.016018320275053132,
+        "com_target_error_m": 0.045726454605420214,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 43,
+      "cost": 316.23804199640654,
+      "qpos": [
+        0.11181599105776599,
+        0.03294641660468519,
+        0.29322594498053955,
+        0.9116695685464299,
+        -0.09243984680801187,
+        -0.20722053958216524,
+        -0.34259760723588534,
+        0.6795372632701784,
+        0.3032058070519269,
+        1.1959233021843703,
+        -0.46268180174478024,
+        -0.4062548644406023,
+        0.6634410516604233,
+        0.16020248922057467,
+        1.1180488222224092,
+        -0.8226882398304881,
+        0.04604153132508495
+      ]
+    },
+    {
+      "id": 12,
+      "pivot": 0,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.03483183373938291,
+        0.055,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008713794758517007,
+        "support_rotation_error_deg": 0.5293466397990629,
+        "pivot_error_m": 0.00036494301768879136,
+        "swing_clearance_m": -0.0005545120042407363,
+        "minimum_body_clearance_m": 0.04519747608192439,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.03512738656342,
+          0.039411718007652995,
+          0.23018371966694093
+        ],
+        "com_support_margin_m": -0.008423003596913201,
+        "com_target_error_m": 0.015592165977206217,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 99,
+      "cost": 36.28562346798893,
+      "qpos": [
+        0.052625595971366186,
+        0.040502761034000884,
+        0.2785817815990269,
+        0.7088110775181058,
+        -0.41273231752165496,
+        0.5630467377458626,
+        -0.1010804707872275,
+        0.7504915775402548,
+        0.4886921905584122,
+        -0.7722306071538404,
+        -1.2383268451404352,
+        0.47320728888497243,
+        0.7504589152117394,
+        0.15453438414845658,
+        -1.1057676588981702,
+        -0.4040068794703105,
+        -0.03239919856143123
+      ]
+    },
+    {
+      "id": 13,
+      "pivot": 3,
+      "seed": "previous_release",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.065,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.001479832461218421,
+        "support_rotation_error_deg": 1.0342305129647766,
+        "pivot_error_m": 0.0007556728652298782,
+        "swing_clearance_m": -0.00116383951965268,
+        "minimum_body_clearance_m": 0.01982105081815733,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 5.252108138636314,
+        "closest_joint_limit": "left_hip_pitch",
+        "com_m": [
+          -0.015375969472118705,
+          0.03926128467441746,
+          0.26505670782767693
+        ],
+        "com_support_margin_m": -0.009032909051541652,
+        "com_target_error_m": 0.027998908525343355,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 53,
+      "cost": 120.03757571032328,
+      "qpos": [
+        0.013178814848408873,
+        0.03076383644337713,
+        0.3076779188483228,
+        0.9007639413651466,
+        -0.1106222625678491,
+        -0.2955074270692073,
+        -0.298433237940471,
+        0.543933172320094,
+        0.3693432383633099,
+        1.2173303593057527,
+        -0.7637217881691231,
+        0.068465394976273,
+        0.0959114587456288,
+        0.1546256097652017,
+        1.0974591397399798,
+        -0.8539412585574495,
+        0.39253845849656643
+      ]
+    },
+    {
+      "id": 14,
+      "pivot": 0,
+      "seed": "known_balance",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008352086227554026,
+        "support_rotation_error_deg": 0.6626994992091699,
+        "pivot_error_m": 8.757172571228288e-05,
+        "swing_clearance_m": -0.00021352495863992578,
+        "minimum_body_clearance_m": 0.03497163720950375,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.0000019684008596,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004852162382438347,
+          0.04034464365466991,
+          0.29067331237638144
+        ],
+        "com_support_margin_m": -0.007375593175780376,
+        "com_target_error_m": 0.014670829302344292,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": false,
+      "nfev": 160,
+      "cost": 34.338764648977616,
+      "qpos": [
+        0.02058507215366804,
+        0.041799961767488535,
+        0.34300828768029434,
+        0.8602602268180423,
+        -0.14634321653510246,
+        0.28740863167710556,
+        0.3948826199855148,
+        -0.7504519550722476,
+        0.4886921562033362,
+        -0.2616584043012519,
+        -0.5703075124019623,
+        0.38823542580489173,
+        -0.34125999746870633,
+        0.3117747660047073,
+        -0.1300338765804122,
+        -0.3933745377289192,
+        -0.07919103071152785
+      ]
+    },
+    {
+      "id": 15,
+      "pivot": 1,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.03483183373938291,
+        0.065,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0009136422027844199,
+        "support_rotation_error_deg": 0.6202810222485815,
+        "pivot_error_m": 7.067444601513392e-05,
+        "swing_clearance_m": -0.0001692648834717564,
+        "minimum_body_clearance_m": 0.005904494545548575,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.034822481382214075,
+          0.04939976728359847,
+          0.2605335561228129
+        ],
+        "com_support_margin_m": 0.0015478799155072068,
+        "com_target_error_m": 0.015609357142709644,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 18,
+      "cost": 37.42843102247669,
+      "qpos": [
+        0.07521801875443467,
+        0.04112723765296394,
+        0.2895826229170074,
+        0.8845350603447606,
+        -0.18461703822084682,
+        -0.20030228462252628,
+        -0.37867303969843125,
+        0.7504915783575615,
+        0.4886921905584122,
+        1.1910701005680953,
+        -0.7469717133331749,
+        -0.19957325060353454,
+        0.2478763875334411,
+        -0.09975481364760741,
+        1.274090353955843,
+        -0.969868651363744,
+        -1.0122909661567108
+      ]
+    },
+    {
+      "id": 16,
+      "pivot": 3,
+      "seed": "neutral",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.065,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0029454421376576777,
+        "support_rotation_error_deg": 1.9808032962981672,
+        "pivot_error_m": 0.0002464528951141349,
+        "swing_clearance_m": -0.0011832865606336371,
+        "minimum_body_clearance_m": 0.05791312416347808,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 18.638842317357536,
+        "closest_joint_limit": "right_hip_roll",
+        "com_m": [
+          -0.022078209839175373,
+          0.020624807225205273,
+          0.28839006410374696
+        ],
+        "com_support_margin_m": -0.028900553643761723,
+        "com_target_error_m": 0.0527702691323577,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 94,
+      "cost": 421.2792943415167,
+      "qpos": [
+        -0.007721709090471673,
+        0.017625906985058337,
+        0.33771064772054854,
+        0.9921049532332008,
+        -0.06812826043101751,
+        0.08543366736918012,
+        -0.061541777522624616,
+        0.12626547144342906,
+        0.09166430237761525,
+        0.21714163225667454,
+        -0.7318582247032296,
+        0.33308531739755876,
+        -0.1103211752327324,
+        0.19828960840035997,
+        0.12132456310886099,
+        -0.5693274949180421,
+        0.303307874829896
+      ]
+    },
+    {
+      "id": 17,
+      "pivot": 0,
+      "seed": "known_balance",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008369563660298061,
+        "support_rotation_error_deg": 0.6671071533140877,
+        "pivot_error_m": 0.00010215016353851426,
+        "swing_clearance_m": -0.00028814970445016977,
+        "minimum_body_clearance_m": 0.029997229680211214,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.0001111400285216,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.0251255029506392,
+          0.040236400692141835,
+          0.2907228318334996
+        ],
+        "com_support_margin_m": -0.007510912091232103,
+        "com_target_error_m": 0.014781345356243078,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 114,
+      "cost": 34.85225230716489,
+      "qpos": [
+        -0.016097105530964606,
+        0.04179031084655251,
+        0.3447166560915692,
+        0.8680344607575858,
+        -0.15699256171386344,
+        0.26425883718750254,
+        0.3899189370524532,
+        -0.7488996369792936,
+        0.48869025079898376,
+        -0.34595756917031095,
+        -0.5410099497569878,
+        0.4967196462547823,
+        -0.3103579593038831,
+        0.28393438659663955,
+        -0.1695658478492247,
+        -0.4391936633595317,
+        0.046455268724869915
+      ]
+    },
+    {
+      "id": 18,
+      "pivot": 2,
+      "seed": "known_balance",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.065,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0013095177588769,
+        "support_rotation_error_deg": 1.037995333854655,
+        "pivot_error_m": 0.001034485201714903,
+        "swing_clearance_m": -0.0011959880002387901,
+        "minimum_body_clearance_m": 0.04351253104248541,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.025611545377660697,
+          0.04012244612883532,
+          0.2902279148489897
+        ],
+        "com_support_margin_m": -0.008101355985358178,
+        "com_target_error_m": 0.024882548439268053,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 60,
+      "cost": 99.7210621052178,
+      "qpos": [
+        -0.014422689492920457,
+        0.035683208778224645,
+        0.34005088233213415,
+        0.9270335646664488,
+        -0.21429373905453494,
+        0.16865050297041362,
+        0.2573790419433378,
+        -0.4891654741544112,
+        0.4886921905584122,
+        -0.004580468169909133,
+        -0.7633231079764491,
+        0.538339968753358,
+        -0.7504915783575615,
+        0.48869216131784043,
+        0.2666249809374512,
+        -0.7138414585524575,
+        0.6910882809488967
+      ]
+    },
+    {
+      "id": 19,
+      "pivot": 0,
+      "seed": "neutral",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0026434044211130106,
+        "support_rotation_error_deg": 2.0019643481311786,
+        "pivot_error_m": 0.0002960305208931073,
+        "swing_clearance_m": -0.0014584782133500711,
+        "minimum_body_clearance_m": 0.09398200817252328,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 28.67094570863021,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.00543298623546707,
+          0.014110852920350572,
+          0.3232978683589687
+        ],
+        "com_support_margin_m": -0.034962821341682104,
+        "com_target_error_m": 0.05273548871941892,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "floor_penetration",
+          "release_height",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 37,
+      "cost": 419.8859415330003,
+      "qpos": [
+        0.021627989804762836,
+        0.0161198335013884,
+        0.38138258516109674,
+        0.9983462364926506,
+        -0.029166267526689528,
+        0.04948442428879019,
+        -0.002326515061005261,
+        0.005011144150828349,
+        0.023196373322162837,
+        0.07586918444779893,
+        -0.20885238721426122,
+        0.033114899676476336,
+        -0.003409688229252872,
+        0.016863670536275077,
+        0.020717377565015925,
+        -0.11389729926291937,
+        -0.0055370178450325274
+      ]
+    },
+    {
+      "id": 20,
+      "pivot": 1,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0003694559827516253,
+        "support_rotation_error_deg": 0.27875611194348987,
+        "pivot_error_m": 3.361638809486285e-05,
+        "swing_clearance_m": -0.00018357431731028107,
+        "minimum_body_clearance_m": 0.005966931113399243,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004805545804556,
+          0.04865044023673255,
+          0.2903393211389153
+        ],
+        "com_support_margin_m": 0.0013305976926233608,
+        "com_target_error_m": 0.006358674317665374,
+        "reasons": [
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 49,
+      "cost": 6.397726766854691,
+      "qpos": [
+        0.039338139767530374,
+        0.039061866366457816,
+        0.33468738738350556,
+        0.8448671788086436,
+        -0.12254166472306781,
+        -0.33054570689025115,
+        -0.4023959818825816,
+        0.7504915783575615,
+        0.4886921905584122,
+        1.0749837536033569,
+        -0.3319002480590844,
+        -0.1952995352737555,
+        0.15746341264324645,
+        -0.3609368461838736,
+        1.2740903539558603,
+        -0.8042454752265884,
+        -1.0122909661567108
+      ]
+    },
+    {
+      "id": 21,
+      "pivot": 3,
+      "seed": "neutral",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0025384405562783275,
+        "support_rotation_error_deg": 1.6807320735283728,
+        "pivot_error_m": 0.00021338620776612487,
+        "swing_clearance_m": -0.001148808890195802,
+        "minimum_body_clearance_m": 0.06198587386528366,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 19.992494770478952,
+        "closest_joint_limit": "right_hip_roll",
+        "com_m": [
+          -0.022230624254095877,
+          0.01753099436253356,
+          0.28783703381285525
+        ],
+        "com_support_margin_m": -0.03161262011286696,
+        "com_target_error_m": 0.04677024682422164,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 55,
+      "cost": 326.93504728278606,
+      "qpos": [
+        -0.007875249229868344,
+        0.014799760625838421,
+        0.3370197485255257,
+        0.9928398475590953,
+        -0.05774632465722415,
+        0.09038111923593516,
+        -0.05258947017297928,
+        0.10784050430583252,
+        0.07722257433337101,
+        0.2014212541393602,
+        -0.7271313887027948,
+        0.3361358809436782,
+        -0.09895711326277747,
+        0.17466391616569307,
+        0.11777846663518983,
+        -0.5895325349874723,
+        0.3107022413198066
+      ]
+    },
+    {
+      "id": 22,
+      "pivot": 0,
+      "seed": "neutral",
+      "com_target_m": [
+        0.03483183373938291,
+        0.065,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0013361601844440812,
+        "support_rotation_error_deg": 0.8053323777267144,
+        "pivot_error_m": 0.0006965135230938687,
+        "swing_clearance_m": -0.000885484585077782,
+        "minimum_body_clearance_m": 0.04895709491164955,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.000000000005604,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.035339401923572836,
+          0.04097474965599806,
+          0.2304013546060212
+        ],
+        "com_support_margin_m": -0.007308350031996164,
+        "com_target_error_m": 0.02403396274178151,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 90,
+      "cost": 86.58408083147908,
+      "qpos": [
+        0.05303598605477254,
+        0.042271400461142396,
+        0.27783107597194817,
+        0.7212426831371759,
+        -0.4122552829863796,
+        0.5453238401836031,
+        -0.11169817813337587,
+        0.7504915783492433,
+        0.4886921905583144,
+        -0.6978130856944119,
+        -1.2568353864911246,
+        0.4652871852445542,
+        0.7504196214151589,
+        0.18113321956027734,
+        -1.0593328007944631,
+        -0.41545314823822127,
+        -0.022543182463170823
+      ]
+    },
+    {
+      "id": 23,
+      "pivot": 3,
+      "seed": "previous_release",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0011554399759717226,
+        "support_rotation_error_deg": 0.7809597571059008,
+        "pivot_error_m": 0.0010484409111407948,
+        "swing_clearance_m": -0.0013505404064339394,
+        "minimum_body_clearance_m": 0.01984299137562816,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 4.941897226209705,
+        "closest_joint_limit": "left_hip_pitch",
+        "com_m": [
+          -0.021480321890816504,
+          0.03722985193167657,
+          0.26388292176943734
+        ],
+        "com_support_margin_m": -0.010798613497615628,
+        "com_target_error_m": 0.018559510767624753,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 42,
+      "cost": 58.936467459954294,
+      "qpos": [
+        0.006116953525891036,
+        0.028519430345421544,
+        0.3067412946326559,
+        0.8998750654576743,
+        -0.10371188512538536,
+        -0.30377783587330187,
+        -0.295275698091493,
+        0.5343606415295196,
+        0.3627842930543308,
+        1.2227445611032128,
+        -0.7796882995555008,
+        0.10230390905302196,
+        0.08569577808587815,
+        0.1511089191900499,
+        1.1033015268817294,
+        -0.868365965202522,
+        0.4163949334924071
+      ]
+    },
+    {
+      "id": 24,
+      "pivot": 0,
+      "seed": "yaw_-1",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008196997645013045,
+        "support_rotation_error_deg": 0.5541580145798387,
+        "pivot_error_m": 0.00041735960298442364,
+        "swing_clearance_m": -0.0006366222101078997,
+        "minimum_body_clearance_m": 0.005903401856658691,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.026027912213234448,
+          0.041332396386849914,
+          0.26053875731165776
+        ],
+        "com_support_margin_m": -0.006437070698351661,
+        "com_target_error_m": 0.013705211091774541,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 72,
+      "cost": 29.79057004093313,
+      "qpos": [
+        -0.013981347462700107,
+        0.04075819352343698,
+        0.3028155381762352,
+        0.9056200076232379,
+        -0.26059740174023577,
+        -0.008252627349208782,
+        -0.3344746479788263,
+        0.7504915783575615,
+        0.4886921905584122,
+        0.5768812901578498,
+        -1.1227087536505242,
+        0.36509980008298637,
+        -0.7504915783068885,
+        0.21425331176277526,
+        0.41866842350527395,
+        -0.6800664037401275,
+        0.3000898202826397
+      ]
+    },
+    {
+      "id": 25,
+      "pivot": 3,
+      "seed": "yaw_1",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.065,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.001274726371949189,
+        "support_rotation_error_deg": 0.7546920282117651,
+        "pivot_error_m": 5.375394110767377e-05,
+        "swing_clearance_m": -0.0002001576201388633,
+        "minimum_body_clearance_m": 0.015506932395273421,
+        "closest_body_pair": [
+          "torso_geom",
+          "right_shank_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.025206584264856,
+          0.043746076138131404,
+          0.23026960492861206
+        ],
+        "com_support_margin_m": -0.004457950150685022,
+        "com_target_error_m": 0.021255668474237384,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 49,
+      "cost": 67.54454448800519,
+      "qpos": [
+        0.00312164200330029,
+        0.041606145812112125,
+        0.2569743718524101,
+        0.8988527034879464,
+        -0.3028444719958088,
+        -0.10707292461640706,
+        0.29813492252347584,
+        -0.7504915783575615,
+        0.4886921905584122,
+        1.2719112731345334,
+        -1.5050739488772902,
+        0.6705481752221403,
+        -0.7504915783575615,
+        0.3112949290415524,
+        1.2740903539386346,
+        -1.2884720816882325,
+        1.0122909661566526
+      ]
+    },
+    {
+      "id": 26,
+      "pivot": 1,
+      "seed": "yaw_1",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0007588809223822452,
+        "support_rotation_error_deg": 0.5073387115897314,
+        "pivot_error_m": 4.4930627893121636e-05,
+        "swing_clearance_m": -0.00017993392028047006,
+        "minimum_body_clearance_m": 0.016758996135577693,
+        "closest_body_pair": [
+          "torso_geom",
+          "right_shank_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.025250129860537734,
+          0.04221636313937431,
+          0.25984613251119254
+        ],
+        "com_support_margin_m": -0.005482949254575636,
+        "com_target_error_m": 0.01278482556080339,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 69,
+      "cost": 25.12204388210016,
+      "qpos": [
+        0.008740436454118969,
+        0.04037450115308079,
+        0.29476489160484953,
+        0.8924909104479594,
+        -0.31575548323109537,
+        -0.15384516471318796,
+        0.28300196973102876,
+        -0.7504915783575615,
+        0.4886921905584122,
+        1.2740903539558603,
+        -1.2621927768165107,
+        0.5278506752323112,
+        -0.7504915783575615,
+        0.2649140901571728,
+        1.2576767621288982,
+        -0.6443293500255572,
+        -1.0122909661566981
+      ]
+    },
+    {
+      "id": 27,
+      "pivot": 2,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.03483183373938291,
+        0.065,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0018888669961657626,
+        "support_rotation_error_deg": 1.1613856401531972,
+        "pivot_error_m": 0.002761388525934455,
+        "swing_clearance_m": -0.0032731456608270926,
+        "minimum_body_clearance_m": 0.018068161508756946,
+        "closest_body_pair": [
+          "torso_geom",
+          "left_shank_geom"
+        ],
+        "min_joint_margin_deg": 3.446833419650245,
+        "closest_joint_limit": "left_hip_pitch",
+        "com_m": [
+          0.07301961001629421,
+          0.032324724338765834,
+          0.24891057160532518
+        ],
+        "com_support_margin_m": -0.016836487215624776,
+        "com_target_error_m": 0.05369906530800329,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 32,
+      "cost": 420.2148956528696,
+      "qpos": [
+        0.1183196210176671,
+        0.03252174201948021,
+        0.27835092606886136,
+        0.9180606013945732,
+        -0.09938322753641593,
+        -0.18347406604920063,
+        -0.33708303626681213,
+        0.6741069228712387,
+        0.2983762592246799,
+        1.248838347055075,
+        -0.5603763111675314,
+        -0.4104647217849272,
+        0.6717689187760238,
+        0.15621960260108028,
+        1.1509179645217429,
+        -0.8964721378203662,
+        0.03227986297567073
+      ]
+    },
+    {
+      "id": 28,
+      "pivot": 0,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0007788826853488946,
+        "support_rotation_error_deg": 0.5439495402324122,
+        "pivot_error_m": 0.0012961307587365562,
+        "swing_clearance_m": -0.0014526934450468515,
+        "minimum_body_clearance_m": 0.06727669181656604,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.0053617726851566214,
+          0.04016326311862735,
+          0.28946780479020273
+        ],
+        "com_support_margin_m": -0.007522027983743098,
+        "com_target_error_m": 0.014855733853117534,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 122,
+      "cost": 39.374411678633194,
+      "qpos": [
+        0.013947652793570854,
+        0.04111304676605707,
+        0.3496951109108096,
+        0.758878576198732,
+        -0.40157489925269835,
+        0.4933467825402463,
+        -0.13946275142115003,
+        0.7504915783575615,
+        0.4886921905584122,
+        -0.9942787065398038,
+        -0.7751602618478737,
+        0.42150557856934695,
+        0.7504915783575615,
+        0.20688779482160552,
+        -1.2740903539558603,
+        0.13069990284322616,
+        -0.9967367565737454
+      ]
+    },
+    {
+      "id": 29,
+      "pivot": 2,
+      "seed": "yaw_-1",
+      "com_target_m": [
+        0.03483183373938291,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.00046882168615365675,
+        "support_rotation_error_deg": 0.3499796115548355,
+        "pivot_error_m": 0.00021277633733152935,
+        "swing_clearance_m": -0.0004127853057443731,
+        "minimum_body_clearance_m": 0.0059269814915994465,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.004795394532942,
+        "closest_joint_limit": "left_hip_yaw",
+        "com_m": [
+          0.03465010396170941,
+          0.046832877490770516,
+          0.29016976193565613
+        ],
+        "com_support_margin_m": -0.0005903264676862217,
+        "com_target_error_m": 0.008170907838646442,
+        "reasons": [
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 52,
+      "cost": 10.657426247982746,
+      "qpos": [
+        0.059577243532421165,
+        0.03932243034476954,
+        0.33802105748166206,
+        0.9039458818015783,
+        -0.2301363300895532,
+        -0.07629580072832466,
+        -0.35227555001462013,
+        0.7504078829340297,
+        0.4829820539827697,
+        0.6837707198618507,
+        -0.5950072834632529,
+        -0.11635266996013607,
+        0.1519164209172443,
+        0.4168566811720999,
+        0.43750701171546147,
+        -0.3986924026178347,
+        0.20541525650389242
+      ]
+    },
+    {
+      "id": 30,
+      "pivot": 0,
+      "seed": "neutral",
+      "com_target_m": [
+        0.03483183373938291,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008094084708590588,
+        "support_rotation_error_deg": 0.6480877630140913,
+        "pivot_error_m": 7.793069933900865e-05,
+        "swing_clearance_m": -0.00021775935670859461,
+        "minimum_body_clearance_m": 0.03916953827749861,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.00020116504894,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.03494595191031648,
+          0.040842025360311444,
+          0.29083336938141313
+        ],
+        "com_support_margin_m": -0.006900741442968657,
+        "com_target_error_m": 0.014182939518339576,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": false,
+      "nfev": 160,
+      "cost": 32.22862960130703,
+      "qpos": [
+        0.06238198999622007,
+        0.04169811839065268,
+        0.3396147597236828,
+        0.8934581020189862,
+        -0.20599539847515488,
+        0.15059957747495908,
+        0.3696191053071482,
+        -0.7503908680257643,
+        0.4886886795659683,
+        0.33805143075270877,
+        -0.7468141821848112,
+        0.27524412376567525,
+        -0.31200735360828913,
+        0.4737914699720329,
+        0.09230800915557553,
+        -0.08670903008047784,
+        -0.3343779710576206
+      ]
+    },
+    {
+      "id": 31,
+      "pivot": 1,
+      "seed": "yaw_1",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0007808742265678517,
+        "support_rotation_error_deg": 0.45825292730081807,
+        "pivot_error_m": 3.641817264453002e-05,
+        "swing_clearance_m": -0.00019704513751504782,
+        "minimum_body_clearance_m": 0.015273457152781436,
+        "closest_body_pair": [
+          "torso_geom",
+          "right_shank_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004815699641187646,
+          0.04192592906959672,
+          0.23004502954816064
+        ],
+        "com_support_margin_m": -0.0057758340966261555,
+        "com_target_error_m": 0.013074158430375099,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 58,
+      "cost": 25.473939752693546,
+      "qpos": [
+        0.04048869719021665,
+        0.03981693405049642,
+        0.2501383782686595,
+        0.9059882654651029,
+        -0.25762991671826013,
+        0.014277128678234208,
+        0.33557153104514337,
+        -0.7504915783575615,
+        0.4886921905584122,
+        1.1187471786947831,
+        -1.4882461611793463,
+        0.5367428312629524,
+        -0.7504915783575615,
+        0.2818406517341236,
+        1.2740903539558601,
+        -0.9434680101488504,
+        -1.012290966152125
+      ]
+    },
+    {
+      "id": 32,
+      "pivot": 0,
+      "seed": "known_balance",
+      "com_target_m": [
+        0.03483183373938291,
+        0.065,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0012711032891462952,
+        "support_rotation_error_deg": 1.0175548698960846,
+        "pivot_error_m": 0.00012997862908831987,
+        "swing_clearance_m": -0.00022063987938443844,
+        "minimum_body_clearance_m": 0.041067700076553054,
+        "closest_body_pair": [
+          "left_foot_geom",
+          "right_foot_geom"
+        ],
+        "min_joint_margin_deg": 2.000000001541268,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.03498854289865336,
+          0.042727603153320894,
+          0.2911443481929672
+        ],
+        "com_support_margin_m": -0.005437573151035272,
+        "com_target_error_m": 0.02230232615319102,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": false,
+      "nfev": 160,
+      "cost": 79.63769334864378,
+      "qpos": [
+        0.05589547113691787,
+        0.044361497362678276,
+        0.3428904106633081,
+        0.8449487226820868,
+        -0.1300334121491714,
+        0.3293759822097538,
+        0.40082967717736884,
+        -0.750491569050466,
+        0.488692190531512,
+        -0.2712254011033536,
+        -0.519155037994232,
+        0.2510006315029786,
+        -0.38838325667417667,
+        0.32016689585665986,
+        -0.1591646391563743,
+        -0.3028393830399342,
+        -0.21807036105632915
+      ]
+    },
+    {
+      "id": 33,
+      "pivot": 3,
+      "seed": "yaw_-1",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0013947615632421155,
+        "support_rotation_error_deg": 1.0628447963973748,
+        "pivot_error_m": 0.0010744589873651577,
+        "swing_clearance_m": -0.0016624855853797204,
+        "minimum_body_clearance_m": 0.005873925510768978,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 7.466902807911398,
+        "closest_joint_limit": "left_hip_yaw",
+        "com_m": [
+          0.006483473928424951,
+          0.03261040619391988,
+          0.29564929169362836
+        ],
+        "com_support_margin_m": -0.015594066562506826,
+        "com_target_error_m": 0.023150298545699548,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 30,
+      "cost": 92.9865974923757,
+      "qpos": [
+        0.026363401623914866,
+        0.02551818167498108,
+        0.34415549732323064,
+        0.9443566101671026,
+        -0.0826188089687713,
+        0.006474243886858151,
+        -0.31831243991458175,
+        0.6550761244729847,
+        0.13397259540449688,
+        0.49247251693419997,
+        -0.5868753732618516,
+        0.029399658595391304,
+        0.04640182260598888,
+        0.23258340824601337,
+        0.28701376976678544,
+        -0.4930902844797031,
+        0.2390594650862363
+      ]
+    },
+    {
+      "id": 34,
+      "pivot": 3,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.03483183373938291,
+        0.065,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0008956212388062442,
+        "support_rotation_error_deg": 0.536698152761948,
+        "pivot_error_m": 4.9071653159812645e-05,
+        "swing_clearance_m": -0.00021175206649358055,
+        "minimum_body_clearance_m": 0.005845010297573235,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.000000000000324,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.034802514507793605,
+          0.04990299713594059,
+          0.22998638560465834
+        ],
+        "com_support_margin_m": 0.0020679629165457937,
+        "com_target_error_m": 0.015097037472514918,
+        "reasons": [
+          "support_position",
+          "support_orientation"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 42,
+      "cost": 34.09874465529904,
+      "qpos": [
+        0.06830329588822082,
+        0.04035533196984566,
+        0.2551488721300515,
+        0.8980124248028035,
+        -0.2156924541056632,
+        -0.12430368232665136,
+        -0.3627658262594487,
+        0.7504915783574376,
+        0.48869219055840657,
+        1.2740903539556838,
+        -1.0857216511793628,
+        -0.11322778523953549,
+        0.20679925627440185,
+        0.3300391271433771,
+        1.0536975684585155,
+        -1.1212897129163752,
+        0.38410733986328616
+      ]
+    },
+    {
+      "id": 35,
+      "pivot": 2,
+      "seed": "neutral",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.065,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0009047350467176154,
+        "support_rotation_error_deg": 0.5454097564116193,
+        "pivot_error_m": 6.12231292377592e-05,
+        "swing_clearance_m": -0.00020653353280195366,
+        "minimum_body_clearance_m": 0.005880150882513539,
+        "closest_body_pair": [
+          "left_shank_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.025130099770355747,
+          0.04958336792470295,
+          0.23014548067330876
+        ],
+        "com_support_margin_m": 0.0017297754811995865,
+        "com_target_error_m": 0.015417365476275934,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 103,
+      "cost": 35.47259486471509,
+      "qpos": [
+        -0.00285283131913655,
+        0.0404148567308916,
+        0.26362445493416403,
+        0.8758104665070197,
+        -0.16942086517468632,
+        -0.23403003342450257,
+        -0.3866297203469278,
+        0.7504915783575574,
+        0.4886921905584122,
+        1.2740903539553354,
+        -1.164111519825894,
+        0.21222591802840438,
+        0.16195340233949015,
+        0.3582853446456352,
+        0.9347641187687523,
+        -1.1309724803087797,
+        0.7405783384480723
+      ]
+    },
+    {
+      "id": 36,
+      "pivot": 3,
+      "seed": "known_balance",
+      "com_target_m": [
+        -0.025168166260617093,
+        0.055,
+        0.23
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0007732977435753141,
+        "support_rotation_error_deg": 0.4576423462892337,
+        "pivot_error_m": 3.261104054395233e-05,
+        "swing_clearance_m": -0.0001999944863077599,
+        "minimum_body_clearance_m": 0.015515181764772417,
+        "closest_body_pair": [
+          "torso_geom",
+          "right_shank_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          -0.02518138092534687,
+          0.042105850401411425,
+          0.23009711325473642
+        ],
+        "com_support_margin_m": -0.00562493256752028,
+        "com_target_error_m": 0.012894522072662925,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 119,
+      "cost": 24.86675730855705,
+      "qpos": [
+        0.003100140378421122,
+        0.03983489349639487,
+        0.25664741996571433,
+        0.8998403060926544,
+        -0.29959814973182114,
+        -0.10523854959960184,
+        0.29908731147696543,
+        -0.7504915783575615,
+        0.4886921905584122,
+        1.2637605163463688,
+        -1.505704057981648,
+        0.6733070123837979,
+        -0.7504915783575615,
+        0.3123062526636579,
+        1.2740903539548425,
+        -1.295076087544418,
+        1.0122909660413812
+      ]
+    },
+    {
+      "id": 37,
+      "pivot": 2,
+      "seed": "known_balance",
+      "com_target_m": [
+        0.03483183373938291,
+        0.055,
+        0.26
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0013158976207590103,
+        "support_rotation_error_deg": 0.923928579491813,
+        "pivot_error_m": 0.0016989733160932266,
+        "swing_clearance_m": -0.0021399603791407394,
+        "minimum_body_clearance_m": 0.08882184023258481,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.3230931814820996,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.035463978941357575,
+          0.029585227280824154,
+          0.2715196612436585
+        ],
+        "com_support_margin_m": -0.01854218267330014,
+        "com_target_error_m": 0.027910802121981233,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 44,
+      "cost": 125.84528149873364,
+      "qpos": [
+        0.05465471187901355,
+        0.032124396354154205,
+        0.32056631754283643,
+        0.851973089085403,
+        -0.14533706479713013,
+        0.4268847933515433,
+        0.26606083190811974,
+        -0.39600450595649656,
+        0.483053150750806,
+        -0.42591839374572427,
+        -0.714879169938359,
+        0.31477418518937006,
+        -0.29997208896253696,
+        0.25385364761295875,
+        -0.29395497434674106,
+        -0.5076568019943252,
+        -0.07189765488907576
+      ]
+    },
+    {
+      "id": 38,
+      "pivot": 1,
+      "seed": "yaw_1",
+      "com_target_m": [
+        0.03483183373938291,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.0007699861343667869,
+        "support_rotation_error_deg": 0.5957520013812606,
+        "pivot_error_m": 6.811247632314197e-05,
+        "swing_clearance_m": -0.00017868132079582738,
+        "minimum_body_clearance_m": 0.05454895455139108,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.03471109234967289,
+          0.041654594021738246,
+          0.28973721409278114
+        ],
+        "com_support_margin_m": -0.0060517178166007435,
+        "com_target_error_m": 0.013348539082642958,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 88,
+      "cost": 28.33809045181651,
+      "qpos": [
+        0.0724288523385892,
+        0.04129785693067004,
+        0.33267733348586387,
+        0.9027100690475258,
+        -0.2883659872631348,
+        -0.06898653960995285,
+        0.31176986060652684,
+        -0.7504915783575615,
+        0.4886921905584122,
+        1.0620529691226248,
+        -0.8955396486230691,
+        0.18467438204927764,
+        -0.7504915783575615,
+        0.30983145299153303,
+        0.8190821261262184,
+        -0.04008019445804986,
+        -1.0122909661567108
+      ]
+    },
+    {
+      "id": 39,
+      "pivot": 0,
+      "seed": "yaw_-1",
+      "com_target_m": [
+        0.03483183373938291,
+        0.065,
+        0.29
+      ],
+      "geometry_passed": false,
+      "geometry": {
+        "support_position_error_m": 0.001210994013184128,
+        "support_rotation_error_deg": 0.8854679873116681,
+        "pivot_error_m": 0.0013077031141812369,
+        "swing_clearance_m": -0.0014616421878903274,
+        "minimum_body_clearance_m": 0.06447526606709789,
+        "closest_body_pair": [
+          "left_thigh_geom",
+          "right_thigh_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.035202529231972236,
+          0.04271291966532901,
+          0.2896701905152077
+        ],
+        "com_support_margin_m": -0.005425048711431599,
+        "com_target_error_m": 0.022292602793046925,
+        "reasons": [
+          "support_position",
+          "support_orientation",
+          "pivot_position",
+          "floor_penetration",
+          "release_com_margin"
+        ]
+      },
+      "optimizer_success": true,
+      "nfev": 71,
+      "cost": 82.41510889990582,
+      "qpos": [
+        0.048952419596346164,
+        0.04359684627745131,
+        0.34873293533609834,
+        0.765698239823149,
+        -0.4020240490567391,
+        0.4802568185459383,
+        -0.14641126238063024,
+        0.7504915783575615,
+        0.4886921905584122,
+        -0.8219934580206412,
+        -0.77707936992262,
+        0.28320301397774045,
+        0.7504915783575615,
+        0.26404668764495043,
+        -1.2740903539558603,
+        0.3042344467234402,
+        -0.9817495285290823
+      ]
+    },
+    {
+      "id": 40,
+      "pivot": 2,
+      "seed": "previous_release",
+      "com_target_m": [
+        0.004831833739382906,
+        0.055,
+        0.29
+      ],
+      "geometry_passed": true,
+      "geometry": {
+        "support_position_error_m": 0.00031602527832886,
+        "support_rotation_error_deg": 0.23418328875423583,
+        "pivot_error_m": 1.866876846403042e-05,
+        "swing_clearance_m": -0.0001948598757381438,
+        "minimum_body_clearance_m": 0.005969507983065168,
+        "closest_body_pair": [
+          "left_shank_geom",
+          "right_shank_geom"
+        ],
+        "min_joint_margin_deg": 2.0000000000000027,
+        "closest_joint_limit": "left_hip_roll",
+        "com_m": [
+          0.004858350987087074,
+          0.04970797840203274,
+          0.2901675210932857
+        ],
+        "com_support_margin_m": 0.002432558371682509,
+        "com_target_error_m": 0.005294738810788819,
+        "reasons": []
+      },
+      "optimizer_success": true,
+      "nfev": 153,
+      "cost": 4.463459727705584,
+      "qpos": [
+        0.03052654696604229,
+        0.03879379506987045,
+        0.3443980166760519,
+        0.7922583550398848,
+        -0.06608610532155795,
+        -0.4424280935261519,
+        -0.41499000905050515,
+        0.7504915783575615,
+        0.4886921905584122,
+        1.129966334858732,
+        -0.022512101703687715,
+        -0.28643676895586095,
+        0.20551177311308017,
+        -0.04440748655875378,
+        1.2740903539553254,
+        -0.7885654279598391,
+        0.5851472799510437
+      ],
+      "statics": {
+        "feasible": true,
+        "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "single_support_only": false,
+        "minimum_swing_force_N": 0.0,
+        "support_force_N": 20.3067,
+        "peak_torque_Nm": 1.5435972541068892,
+        "torques_Nm": [
+          -0.9494613088024577,
+          0.2284423187631377,
+          -1.5435972541068892,
+          0.39936019749935714,
+          0.4884220602171265,
+          -0.048257944025806965,
+          0.01695638968533754,
+          0.15278290403083633,
+          -0.19117036688392325,
+          -0.01688452621921717
+        ],
+        "contact_force_variables_N": [
+          -0.0,
+          2.335001865860775e-06,
+          10.150950381922222,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          1.1015961530867837,
+          8.778751507966966,
+          0.0,
+          -1.1015984880886496,
+          1.376998110110812,
+          -0.0,
+          -0.0,
+          0.0
+        ],
+        "equality_residual_max": 2.220446049250313e-16,
+        "inequality_violation_max": 0.0
+      },
+      "release_feasible": true
+    }
+  ],
+  "paths": [
+    {
+      "endpoint_trial": 40,
+      "search_direction": "forward",
+      "passed": false,
+      "stages": [
+        {
+          "stage": "transfer",
+          "knot": 1,
+          "geometry": {
+            "support_position_error_m": 9.125408580905597e-10,
+            "support_rotation_error_deg": 6.557195271562182e-07,
+            "pivot_error_m": 5.4855937512286995e-11,
+            "swing_clearance_m": -0.00020000006678111415,
+            "minimum_body_clearance_m": 0.08836070523508058,
+            "closest_body_pair": [
+              "left_foot_geom",
+              "right_foot_geom"
+            ],
+            "min_joint_margin_deg": 29.130710809282125,
+            "closest_joint_limit": "right_hip_roll",
+            "com_m": [
+              -0.011083044883250839,
+              0.0007766733361277433,
+              0.33269469913357413
+            ],
+            "com_support_margin_m": -0.04622332736911196,
+            "com_target_error_m": 1.615653823663502e-08,
+            "reasons": []
+          },
+          "optimizer_success": false,
+          "nfev": 160,
+          "cost": 2.73529094292869e-06,
+          "interpolation_samples": 4,
+          "statics": {
+            "feasible": true,
+            "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+            "single_support_only": false,
+            "minimum_swing_force_N": 7.41861088261861,
+            "support_force_N": 12.888089117381389,
+            "peak_torque_Nm": 1.2930899062438623,
+            "torques_Nm": [
+              -0.18901158900811288,
+              1.2930899062438623,
+              0.3340111466997898,
+              0.6196861423980872,
+              -0.5079101219280072,
+              -0.20022156378176637,
+              -0.9320768468186317,
+              -0.3770187858160561,
+              0.3928075493656529,
+              0.6473772716721459
+            ],
+            "contact_force_variables_N": [
+              2.947867577507342,
+              -1.8837523670259662,
+              11.509003165429412,
+              -0.0,
+              -0.5728039607725137,
+              0.7160049509656421,
+              -0.0,
+              -0.5304648007890673,
+              0.6630810009863342,
+              -0.0,
+              -0.0,
+              0.0,
+              -2.947867577507342,
+              2.9870211285875463,
+              7.41861088261861
+            ],
+            "equality_residual_max": 1.5342794673633975e-09,
+            "inequality_violation_max": 0.0
+          }
+        }
+      ],
+      "qpos": [
+        [
+          0.0,
+          0.0,
+          0.395,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0005303700476442068,
+          0.0002158841851958403,
+          0.3939969294459445,
+          0.9999569820753613,
+          -0.0034208092021357603,
+          0.0008681679741871823,
+          -0.008577782202100988,
+          0.01716200772670948,
+          0.006826471797434205,
+          0.01773565176551661,
+          -0.026651672575193845,
+          0.007121029559747287,
+          -0.01914338323310853,
+          0.0151719585300238,
+          0.004341062225222168,
+          -0.017347868651246552,
+          0.011460727124743842
+        ]
+      ],
+      "initial_statics": {
+        "feasible": true,
+        "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "single_support_only": false,
+        "minimum_swing_force_N": 7.654063843559062,
+        "support_force_N": 12.652636156440936,
+        "peak_torque_Nm": 1.2564183338873862,
+        "torques_Nm": [
+          0.5290940744278546,
+          0.8054727376955193,
+          -1.2564183338873862,
+          0.08960580209257037,
+          0.36045576918018096,
+          0.052444372003824784,
+          -0.48056553735819796,
+          1.2564183338873862,
+          0.9159786408488959,
+          -0.22034530916986927
+        ],
+        "contact_force_variables_N": [
+          -2.023857740609895,
+          1.9994289251527497,
+          5.029108332203306,
+          -0.0,
+          -0.0,
+          0.0,
+          -2.449514924249175,
+          -3.086967950410218,
+          6.920603593324243,
+          -0.0,
+          -0.5623393847307093,
+          0.7029242309133881,
+          4.133192049589782,
+          1.6498784099881765,
+          7.2288380744724465,
+          -0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          -0.0,
+          0.0,
+          0.3401806152692924,
+          -0.0,
+          0.42522576908661625
+        ],
+        "equality_residual_max": 4.274358644806853e-15,
+        "inequality_violation_max": 1.3322676295501878e-15
+      }
+    }
+  ],
+  "best_geometry": {
+    "id": 40,
+    "pivot": 2,
+    "seed": "previous_release",
+    "com_target_m": [
+      0.004831833739382906,
+      0.055,
+      0.29
+    ],
+    "geometry_passed": true,
+    "geometry": {
+      "support_position_error_m": 0.00031602527832886,
+      "support_rotation_error_deg": 0.23418328875423583,
+      "pivot_error_m": 1.866876846403042e-05,
+      "swing_clearance_m": -0.0001948598757381438,
+      "minimum_body_clearance_m": 0.005969507983065168,
+      "closest_body_pair": [
+        "left_shank_geom",
+        "right_shank_geom"
+      ],
+      "min_joint_margin_deg": 2.0000000000000027,
+      "closest_joint_limit": "left_hip_roll",
+      "com_m": [
+        0.004858350987087074,
+        0.04970797840203274,
+        0.2901675210932857
+      ],
+      "com_support_margin_m": 0.002432558371682509,
+      "com_target_error_m": 0.005294738810788819,
+      "reasons": []
+    },
+    "optimizer_success": true,
+    "nfev": 153,
+    "cost": 4.463459727705584,
+    "qpos": [
+      0.03052654696604229,
+      0.03879379506987045,
+      0.3443980166760519,
+      0.7922583550398848,
+      -0.06608610532155795,
+      -0.4424280935261519,
+      -0.41499000905050515,
+      0.7504915783575615,
+      0.4886921905584122,
+      1.129966334858732,
+      -0.022512101703687715,
+      -0.28643676895586095,
+      0.20551177311308017,
+      -0.04440748655875378,
+      1.2740903539553254,
+      -0.7885654279598391,
+      0.5851472799510437
+    ],
+    "statics": {
+      "feasible": true,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "single_support_only": false,
+      "minimum_swing_force_N": 0.0,
+      "support_force_N": 20.3067,
+      "peak_torque_Nm": 1.5435972541068892,
+      "torques_Nm": [
+        -0.9494613088024577,
+        0.2284423187631377,
+        -1.5435972541068892,
+        0.39936019749935714,
+        0.4884220602171265,
+        -0.048257944025806965,
+        0.01695638968533754,
+        0.15278290403083633,
+        -0.19117036688392325,
+        -0.01688452621921717
+      ],
+      "contact_force_variables_N": [
+        -0.0,
+        2.335001865860775e-06,
+        10.150950381922222,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        1.1015961530867837,
+        8.778751507966966,
+        0.0,
+        -1.1015984880886496,
+        1.376998110110812,
+        -0.0,
+        -0.0,
+        0.0
+      ],
+      "equality_residual_max": 2.220446049250313e-16,
+      "inequality_violation_max": 0.0
+    },
+    "release_feasible": true
+  },
+  "limitations": [
+    "Finite local search over fixed foot pivots; no global infeasibility claim.",
+    "Ideal rigid-contact statics and sampled paths do not establish dynamic trackability.",
+    "Model masses, geometry, joint limits, friction and motor limits are unchanged."
+  ],
+  "wall_time_s": 14.783867854000164,
+  "updated_utc": "2026-10-31T21:02:04.882668+00:00",
+  "counts": {
+    "endpoints_tested": 41,
+    "geometry_passed": 1,
+    "release_statics_passed": 1,
+    "paths_tested": 1,
+    "paths_passed": 0
+  },
+  "geometry_rejection_counts": {
+    "support_position": 33,
+    "support_orientation": 39,
+    "release_com_margin": 38,
+    "pivot_position": 11,
+    "floor_penetration": 13,
+    "release_height": 1
+  },
+  "model_hash_unchanged": true
+}

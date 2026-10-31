@@ -5,17 +5,17 @@ This experiment searches release postures and connecting sampled quasi-static pa
 ```bash
 python -m pip install -r simulation/requirements.txt
 python simulation/experiments/dodo_feasibility_search.py \
-  --max-candidates 360 --budget-seconds 600 \
+  --max-candidates 360 --max-paths 12 --budget-seconds 600 \
   --output simulation/results/feasibility_search/current.json
 ```
 
 The left-side search considers all four swing-foot sole corners as fixed pivots, COM heights 230/260/290 mm, fore–aft offsets -30/0/+30 mm relative to the support-foot center, and lateral COM targets 55/65 mm. Seeds include neutral, both torso-yaw directions, the previous release pose, and the successful initialized one-foot pose. A fixed random seed interleaves configurations so partial results cover multiple cases. The saved report includes the actual starting poses and input hashes.
 
-Default acceptance criteria include 5 mm checked body clearance, 2 degrees remaining before every joint limit, contact position errors at most 0.5 mm, support orientation error at most 0.25 degrees, and COM target error at most 2 mm. Endpoint COM projection must be at least 2 mm inside the supporting sole. Small nominal contact penetration is permitted consistently with the original contact anchors. These are explicit search requirements, not properties already demonstrated by the robot.
+Default acceptance criteria include 5 mm checked body clearance, 2 degrees remaining before every joint limit, contact position errors at most 0.5 mm, support orientation error at most 0.25 degrees, and continuation COM target error at most 2 mm. Endpoint COM targets guide optimization; release acceptance uses the actual COM projection at least 2 mm inside the supporting sole and actual COM height between 210 and 320 mm. Missing an arbitrary endpoint COM target alone does not invalidate static feasibility. Small nominal contact penetration is permitted consistently with the original contact anchors. These are explicit search requirements, not properties already demonstrated by the robot.
 
 For a geometrically valid endpoint, a separate linear program minimizes swing-foot normal force subject to gravity/passive-force balance, nonnegative normal forces, conservative friction pyramids (mu 0.8), support CoP margins, and motor torque bounds of +/-3.8 Nm. This reserves 0.2 Nm below the original +/-4 Nm limits; the XML is not changed. A release candidate needs swing force below 5% of body weight. LP residuals are checked independently.
 
-For up to six passing endpoint candidates, continuation searches a transfer from `bird_stand` followed by 25 mm foot lift. Each segment is sampled at least four times and at no more than one degree of joint interpolation per sample. Geometry and statics are rechecked at these samples. Lift samples require a force solution with **only the stance foot**, including the start of lift. This guards against treating a low-load two-contact solution as a one-contact solution.
+The search tries both forward continuation from `bird_stand` and reverse continuation from passing release candidates, followed by 25 mm foot lift. The example command allows twelve path attempts (six candidates if both directions are used). Reverse traces are reversed into execution order only after the transfer connection succeeds; failed partial traces retain their search order. Each segment is sampled at least four times and at no more than one degree of joint interpolation per sample. Geometry and statics are rechecked at these samples. Lift samples require a force solution with **only the stance foot**, including the start of lift. This guards against treating a low-load two-contact solution as a one-contact solution.
 
 The JSON is atomically checkpointed after each endpoint and path waypoint. `RUNNING` means an incomplete search. `FEASIBLE_SAMPLED_QUASISTATIC_PATH_FOUND` means a candidate is ready for subsequent dynamic testing, not that a transition has succeeded. Other terminal outcomes record that no path was found within the evaluated configurations/time/path budget. None proves global infeasibility. Closest-pair distances are capped at 100 mm.
 
@@ -28,3 +28,5 @@ python -m unittest discover -s simulation/experiments -p test_feasibility_search
 ```
 
 The tests independently check the known one-foot pose's static support, rejection with insufficient motor torque, and the distinction between static force feasibility and the new joint-margin requirement.
+
+For finer interpolation checks around the first candidate, repeat the same seeded search with `--max-candidates 41 --max-paths 2 --path-knots 64 --budget-seconds 300 --output simulation/results/feasibility_search/refined.json`. This retains the original tolerances and changes waypoint density.

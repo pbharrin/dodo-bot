@@ -28,6 +28,11 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def json_default(value):
+    if isinstance(value,np.generic):return value.item()
+    raise TypeError(f'Unsupported JSON value: {type(value).__name__}')
+
+
 class Search:
     def __init__(self, args):
         self.a=args;self.r=Robot(args.model);self.m=self.r.m
@@ -70,7 +75,7 @@ class Search:
         self.report['model_hash_unchanged']=digest(self.a.model)==self.report['model_sha256']
         path=Path(self.a.output);path.parent.mkdir(parents=True,exist_ok=True)
         temporary=path.with_suffix('.tmp')
-        temporary.write_text(json.dumps(clean_json(self.report),indent=2,allow_nan=False)+'\n')
+        temporary.write_text(json.dumps(clean_json(self.report),indent=2,allow_nan=False,default=json_default)+'\n')
         temporary.replace(path)
 
     def make_seeds(self):
@@ -120,7 +125,11 @@ class Search:
             'floor_penetration':values['swing_clearance_m']<-.001,
             'body_clearance':gap<self.clearance-1e-6,
             'joint_margin':min(joint_gap)<self.joint_margin-1e-7,
-            'com_target':target is not None and values['com_target_error_m']>self.com_tol,
+            # Endpoint COM targets guide the optimizer; the physical release
+            # requirements are support margin and a permissible height, not an
+            # arbitrary exact COM coordinate. Continuation targets remain checked.
+            'com_target':not release and target is not None and values['com_target_error_m']>self.com_tol,
+            'release_height':release and not .21<=d.subtree_com[r.torso,2]<=.32,
             'release_com_margin':release and support_margin<.002,
         }.items():
             if bad:reasons.append(name)
@@ -194,28 +203,32 @@ class Search:
             out['feasible']=out['equality_residual_max']<1e-6 and out['inequality_violation_max']<1e-6
         return out
 
-    def path(self,trial):
+    def path(self,trial,direction='forward'):
         r=self.r;pivot=trial['pivot'];end=np.array(trial['qpos']);end_com=np.array(trial['geometry']['com_m'])
-        path={'endpoint_trial':trial['id'],'passed':False,'stages':[],'qpos':[r.q0.tolist()]}
+        q=end.copy() if direction=='reverse' else r.q0.copy()
+        path={'endpoint_trial':trial['id'],'search_direction':direction,'passed':False,'stages':[],'qpos':[q.tolist()]}
         self.report['paths'].append(path);self.save()
-        q=r.q0.copy()
         # Check start statics with both complete soles, then constrain the
         # unloading foot to the chosen pivot for the quasi-static continuation.
-        start_static=self.statics(q,pivot,initial=True);path['initial_statics']=start_static
+        start_static=self.statics(r.q0,pivot,initial=True);path['initial_statics']=start_static
         if not start_static['feasible']:path['failure']='initial_statics';return
         for stage in ['transfer','lift']:
             stage_start=q.copy();start_com=r.pose_data(q).subtree_com[r.torso].copy()
             goal=end_com.copy() if stage=='transfer' else start_com.copy()
+            if stage=='transfer' and direction=='reverse':goal=r.c0.copy()
             if stage=='lift':goal[1]=r.anchors[self.support][0][1]
             clearance=r.clearance(r.pose_data(q),self.swing)
             for k in range(1,self.a.path_knots+1):
                 self.check_time();u=k/self.a.path_knots;target=start_com+u*(goal-start_com)
                 lift=None if stage=='transfer' else clearance+u*(.025-clearance)
                 hint=interpolate_q(r,r.q0,end,u) if stage=='transfer' else q
+                if stage=='transfer' and direction=='reverse':hint=interpolate_q(r,end,r.q0,u)
                 candidates=[]
                 for seed in [q,hint]:
-                    candidate,opt=self.solve_pose(seed,pivot,target,hint,lift)
-                    geom=self.geometry(candidate,pivot,target,lift,release=stage=='lift' or k==self.a.path_knots)
+                    if stage=='transfer' and direction=='reverse' and k==self.a.path_knots:
+                        candidate=r.q0.copy();opt={'optimizer_success':True,'nfev':0,'cost':0.,'exact_initial_pose':True}
+                    else:candidate,opt=self.solve_pose(seed,pivot,target,hint,lift)
+                    geom=self.geometry(candidate,pivot,target,lift,release=stage=='lift' or (direction=='forward' and k==self.a.path_knots))
                     candidates.append((candidate,opt,geom))
                     if not geom['reasons']:break
                 candidate,opt,geom=min(candidates,key=lambda x:(len(x[2]['reasons']),x[1]['cost']))
@@ -238,6 +251,8 @@ class Search:
                         self.save();return
                 record['statics']=self.statics(candidate,pivot,single=stage=='lift')
                 q=candidate;path['qpos'].append(q.tolist());self.save()
+            if stage=='transfer' and direction=='reverse':
+                path['qpos'].reverse();q=end.copy()
         path['passed']=True;path['failure']=None;path['qualification']='Sampled quasi-static path only; dynamic validation still required.'
         self.save()
 
@@ -255,14 +270,17 @@ class Search:
                     'geometry_passed':not geom['reasons'],'geometry':geom,**opt,'qpos':q.tolist()}
                 if trial['geometry_passed']:
                     trial['statics']=self.statics(q,pivot)
-                    trial['release_feasible']=trial['statics']['feasible'] and trial['statics'].get('minimum_swing_force_N',np.inf)<=.05*self.r.weight
+                    trial['release_feasible']=bool(trial['statics']['feasible'] and trial['statics'].get('minimum_swing_force_N',np.inf)<=.05*self.r.weight)
                 self.report['trials'].append(trial)
                 best=self.report['best_geometry']
                 if best is None or (len(geom['reasons']),opt['cost'])<(len(best['geometry']['reasons']),best['cost']):self.report['best_geometry']=trial
                 self.save()
                 print(f"{time.monotonic()-self.started:.1f}s trial={i} pivot={pivot} seed={name} geometry={trial['geometry_passed']} release={trial.get('release_feasible',False)} reasons={geom['reasons']}",flush=True)
                 if trial.get('release_feasible') and len(self.report['paths'])<self.a.max_paths:
-                    self.path(trial)
+                    for direction in ['forward','reverse']:
+                        if len(self.report['paths'])>=self.a.max_paths:break
+                        self.path(trial,direction)
+                        if self.report['paths'][-1]['passed']:break
                     if self.report['paths'][-1]['passed']:
                         self.report['status']='FEASIBLE_SAMPLED_QUASISTATIC_PATH_FOUND';break
             else:self.report['status']='SEARCH_COMPLETED_NO_FEASIBLE_PATH'

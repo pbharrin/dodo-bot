@@ -1,7 +1,11 @@
 # Planning-only feasibility search
 
-Search in progress. No dynamic simulation is being run.
+Search in progress; no dynamic simulation is being run.
 
-This checkpoint contains 138 endpoint trials, 0 statically feasible release candidates, and 0 passing sampled paths. See [current.json](current.json) for the exact snapshot and limitations.
+Broad sweep: RUNNING; {'endpoints_tested': 251, 'geometry_passed': 3, 'release_statics_passed': 3, 'paths_tested': 6, 'paths_passed': 0}.
 
-[Search instructions](../../experiments/FEASIBILITY_SEARCH.md). A failed finite local search does not prove the unchanged model cannot transition.
+Finer-waypoint trial: RUNNING; {'endpoints_tested': 41, 'geometry_passed': 1, 'release_statics_passed': 1, 'paths_tested': 1, 'paths_passed': 0}.
+
+The initial checkpoint used an overly restrictive exact endpoint COM target. The current search uses physical support margin and COM height for release acceptance, preserving clearance, joint, contact, friction and torque requirements.
+
+See [current.json](current.json), [refined.json](refined.json), and [search instructions](../../experiments/FEASIBILITY_SEARCH.md). Finite local-search failure does not prove model infeasibility.
