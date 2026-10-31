@@ -9,3 +9,6 @@ venv/
 *.npy
 *.npz
 *.log
+
+# Keep archived reference results; ignore new local runs.
+results/local/

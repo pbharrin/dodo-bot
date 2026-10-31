@@ -1,0 +1,78 @@
+<mujoco model="dodo_10motor_floating">
+  <compiler angle="degree" autolimits="true"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/>
+  <default>
+    <joint armature="0.0005" limited="true"/>
+    <geom contype="1" conaffinity="1" condim="3"/>
+  </default>
+  <visual><global offwidth="960" offheight="720"/></visual>
+  <worldbody>
+    <light pos="0 -1 2" dir="0 0 -1" diffuse="0.9 0.9 0.9"/>
+    <geom name="floor" type="plane" size="2 2 0.1" rgba="0.85 0.87 0.9 1" friction="1.2 0.01 0.001"/>
+    <body name="torso" pos="0 0 0.395">
+      <freejoint name="floating_base"/>
+      <geom name="torso_geom" type="ellipsoid" pos="0 0 0.035" size="0.12 0.085 0.07" mass="1.25" rgba="0.37 0.57 0.70 1"/>
+      
+    <body name="left_hip_yaw" pos="0 0.065 -0.03">
+      <inertial pos="0 0 0" mass="0.01" diaginertia="0.00001 0.00001 0.00001"/>
+      <joint name="left_hip_yaw" type="hinge" axis="0 0 1" range="-45 45" damping="0.02"/>
+      <body name="left_hip_roll">
+        <inertial pos="0 0 0" mass="0.01" diaginertia="0.00001 0.00001 0.00001"/>
+        <joint name="left_hip_roll" type="hinge" axis="1 0 0" range="-30 30" damping="0.02"/>
+        <body name="left_thigh" quat="0.976296007 0 0.216439614 0">
+          <joint name="left_hip_pitch" type="hinge" axis="0 1 0" range="-75 75" damping="0.03"/>
+          <geom name="left_thigh_geom" type="capsule" fromto="0 0 0 0 0 -0.165" size="0.018" mass="0.18" rgba="0.78 0.56 0.28 1"/>
+          <body name="left_shank" pos="0 0 -0.165" quat="0.939692621 0 -0.342020143 0">
+            <joint name="left_knee_pitch" type="hinge" axis="0 1 0" range="-100 90" damping="0.03"/>
+            <geom name="left_shank_geom" type="capsule" fromto="0 0 0 0 0 -0.1915" size="0.014" mass="0.13" rgba="0.88 0.69 0.35 1"/>
+            <body name="left_foot" pos="0 0 -0.1915" quat="0.991444861 0 0.130526192 0">
+              <joint name="left_ankle_pitch" type="hinge" axis="0 1 0" range="-60 60" damping="0.02"/>
+              <geom name="left_foot_geom" type="box" pos="0.025 0 -0.020984419404596173" size="0.078 0.018 0.01" mass="0.08" friction="1.2 0.01 0.001" rgba="0.43 0.36 0.29 1"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+      
+    <body name="right_hip_yaw" pos="0 -0.065 -0.03">
+      <inertial pos="0 0 0" mass="0.01" diaginertia="0.00001 0.00001 0.00001"/>
+      <joint name="right_hip_yaw" type="hinge" axis="0 0 1" range="-45 45" damping="0.02"/>
+      <body name="right_hip_roll">
+        <inertial pos="0 0 0" mass="0.01" diaginertia="0.00001 0.00001 0.00001"/>
+        <joint name="right_hip_roll" type="hinge" axis="1 0 0" range="-30 30" damping="0.02"/>
+        <body name="right_thigh" quat="0.976296007 0 0.216439614 0">
+          <joint name="right_hip_pitch" type="hinge" axis="0 1 0" range="-75 75" damping="0.03"/>
+          <geom name="right_thigh_geom" type="capsule" fromto="0 0 0 0 0 -0.165" size="0.018" mass="0.18" rgba="0.78 0.56 0.28 1"/>
+          <body name="right_shank" pos="0 0 -0.165" quat="0.939692621 0 -0.342020143 0">
+            <joint name="right_knee_pitch" type="hinge" axis="0 1 0" range="-100 90" damping="0.03"/>
+            <geom name="right_shank_geom" type="capsule" fromto="0 0 0 0 0 -0.1915" size="0.014" mass="0.13" rgba="0.88 0.69 0.35 1"/>
+            <body name="right_foot" pos="0 0 -0.1915" quat="0.991444861 0 0.130526192 0">
+              <joint name="right_ankle_pitch" type="hinge" axis="0 1 0" range="-60 60" damping="0.02"/>
+              <geom name="right_foot_geom" type="box" pos="0.025 0 -0.020984419404596173" size="0.078 0.018 0.01" mass="0.08" friction="1.2 0.01 0.001" rgba="0.43 0.36 0.29 1"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude body1="torso" body2="left_thigh"/>
+    <exclude body1="torso" body2="right_thigh"/>
+  </contact>
+  <actuator>
+    <motor name="left_hip_yaw_motor" joint="left_hip_yaw" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="left_hip_roll_motor" joint="left_hip_roll" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="left_hip_pitch_motor" joint="left_hip_pitch" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="left_knee_pitch_motor" joint="left_knee_pitch" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="left_ankle_pitch_motor" joint="left_ankle_pitch" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="right_hip_yaw_motor" joint="right_hip_yaw" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="right_hip_roll_motor" joint="right_hip_roll" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="right_hip_pitch_motor" joint="right_hip_pitch" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="right_knee_pitch_motor" joint="right_knee_pitch" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+    <motor name="right_ankle_pitch_motor" joint="right_ankle_pitch" gear="1" ctrllimited="true" ctrlrange="-4 4"/>
+  </actuator>
+  <keyframe>
+    <key name="bird_stand" qpos="0 0 0.395 1 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+  </keyframe>
+</mujoco>

@@ -1,4 +1,6 @@
 mujoco
 numpy
+scipy
+osqp>=1.0
 imageio
 imageio-ffmpeg
