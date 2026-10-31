@@ -22,3 +22,7 @@ The model retains its original 130 mm hip spacing. No geometry changes were made
 ## Active-unloading transition experiment
 
 [Transition v2](experiments/TRANSITION_V2.md) adds measured-load feedback, bounded posture updates, collision clearance checks, and explicit failure diagnostics on the unchanged model. It is an experimental follow-up; the two-foot-to-one-foot transition is not yet solved. See [validation results](results/transition_v2/README.md).
+
+## Planning-only release feasibility
+
+The [feasibility search](experiments/FEASIBILITY_SEARCH.md) found a sampled quasi-static release-only path on the unchanged model. [Results and the exported plan](results/feasibility_search/README.md) distinguish static force feasibility from an airborne transition and dynamic tracking.

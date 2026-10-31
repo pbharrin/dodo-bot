@@ -30,3 +30,17 @@ python -m unittest discover -s simulation/experiments -p test_feasibility_search
 The tests independently check the known one-foot pose's static support, rejection with insufficient motor torque, and the distinction between static force feasibility and the new joint-margin requirement.
 
 For finer interpolation checks around the first candidate, repeat the same seeded search with `--max-candidates 41 --max-paths 2 --path-knots 64 --budget-seconds 300 --output simulation/results/feasibility_search/refined.json`. This retains the original tolerances and changes waypoint density.
+
+## Constrained lift refinement and release-only export
+
+The additional `--refine-lift` option uses SLSQP for lift waypoints with explicit stance-pose, swing-height, body-clearance, joint-limit, COM-margin, and COM-height constraints. The height may adapt within 210..320 mm. Feasible waypoints are still rejected if the connecting interpolation fails geometry or static force checks.
+
+```bash
+python simulation/experiments/dodo_feasibility_search.py \
+  --max-candidates 41 --max-paths 2 --path-knots 64 --refine-lift \
+  --budget-seconds 300 \
+  --output simulation/results/feasibility_search/constrained_lift.json
+python simulation/experiments/validate_release_plan.py
+```
+
+The separate validator reads `refined.json`, extracts a completed transfer from `bird_stand`, and recomputes its sampled geometry and statics. It exports `release_path.json` only as a **release-only** plan, explicitly excluding lift, timing, velocity/acceleration guarantees, and dynamic validation. A partial reverse trace that does not start at `bird_stand` is not eligible.
