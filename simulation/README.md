@@ -18,3 +18,7 @@ Initial prototype: approximately 50 cm tall dodo-inspired biped, ten actuated le
 See [the recorded experiment and reproduction instructions](results/single_support_left/README.md). The standalone runner is [experiments/dodo_single_support.py](experiments/dodo_single_support.py), and the exact tested model is [models/dodo_floating.xml](models/dodo_floating.xml).
 
 The model retains its original 130 mm hip spacing. No geometry changes were made for this experiment.
+
+## Active-unloading transition experiment
+
+[Transition v2](experiments/TRANSITION_V2.md) adds measured-load feedback, bounded posture updates, collision clearance checks, and explicit failure diagnostics on the unchanged model. It is an experimental follow-up; the two-foot-to-one-foot transition is not yet solved. See [validation results](results/transition_v2/README.md).
