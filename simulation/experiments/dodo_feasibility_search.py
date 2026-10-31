@@ -18,7 +18,7 @@ import time
 import mujoco
 import numpy as np
 import scipy
-from scipy.optimize import least_squares, linprog
+from scipy.optimize import least_squares, linprog, minimize
 from scipy.spatial.transform import Rotation
 
 from dodo_transition_v2 import Robot, clean_json, interpolate_q, rotation_error
@@ -164,7 +164,35 @@ class Search:
         fit=least_squares(fun,np.clip(x0,lo+1e-8,hi-1e-8),bounds=(lo,hi),
             max_nfev=self.a.max_nfev,ftol=1e-8,xtol=1e-8,gtol=1e-7)
         fill(fit.x)
-        return d.qpos.copy(),{'optimizer_success':bool(fit.success),'nfev':int(fit.nfev),'cost':float(fit.cost)}
+        q=d.qpos.copy();info={'optimizer_success':bool(fit.success),'nfev':int(fit.nfev),'cost':float(fit.cost),'optimizer':'least_squares'}
+        if lift is not None and self.a.refine_lift:
+            # Explicit physical constraints avoid accepting a least-squares
+            # compromise that lifts the foot while losing the COM support margin.
+            def objective(x):
+                self.check_time();fill(x)
+                error=(d.subtree_com[r.torso]-target)/.01
+                return float(error[0]**2+error[1]**2+.1*error[2]**2+.01*np.sum((x[6:]-x0[6:])**2))
+            def equalities(x):
+                fill(x);g=r.feet[self.support];p,R=r.anchors[self.support]
+                return np.r_[1000*(d.geom_xpos[g]-p),200*rotation_error(R,d.geom_xmat[g].reshape(3,3)),1000*(r.clearance(d,self.swing)-lift)]
+            def inequalities(x):
+                fill(x);g=r.feet[self.support];p,R=r.anchors[self.support];com=d.subtree_com[r.torso]
+                local=R.T@(np.r_[com[:2],r.ground_z]-p)
+                hx,hy=m.geom_size[g,:2]-.0021
+                vals=[hx-local[0],hx+local[0],hy-local[1],hy+local[1],com[2]-.21,.32-com[2]]
+                vals.extend(mujoco.mj_geomDistance(m,d,a,b,.1,None)-self.clearance for a,b in r.collision_pairs)
+                return 1000*np.array(vals)
+            constrained=minimize(objective,fit.x,method='SLSQP',bounds=list(zip(lo,hi)),
+                constraints=[{'type':'eq','fun':equalities},{'type':'ineq','fun':inequalities}],
+                options={'maxiter':160,'ftol':1e-9})
+            fill(constrained.x);candidate=d.qpos.copy()
+            check=self.geometry(candidate,pivot,target,lift,release=True)
+            info['constrained_attempt']={'success':bool(constrained.success),'message':str(constrained.message),
+                'nfev':int(constrained.nfev),'eq_residual':float(max(abs(equalities(constrained.x)))),
+                'minimum_inequality':float(min(inequalities(constrained.x))),'geometry':check}
+            if not check['reasons'] and max(abs(equalities(constrained.x)))<.01 and min(inequalities(constrained.x))>=-1e-4:
+                q=candidate;info.update(optimizer='SLSQP',optimizer_success=bool(constrained.success),cost=float(constrained.fun))
+        return q,info
 
     def statics(self,q,pivot,single=False,initial=False):
         """Minimize swing Fz subject to exact rigid-body force balance and bounds."""
@@ -309,6 +337,7 @@ def main():
     p.add_argument('--joint-margin-deg',type=float,default=2.)
     p.add_argument('--torque-limit',type=float,default=3.8)
     p.add_argument('--seed',type=int,default=20261031)
+    p.add_argument('--refine-lift',action='store_true',help='Use constrained optimization for lift samples; allow COM height to adapt within 210..320 mm')
     a=p.parse_args()
     if not all(np.isfinite(v) for v in vars(a).values() if isinstance(v,(int,float))):p.error('Numerical values must be finite')
     if min(a.budget_seconds,a.max_candidates,a.max_paths,a.path_knots,a.max_nfev)<=0:p.error('Budgets and counts must be positive')

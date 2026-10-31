@@ -14,7 +14,7 @@ class FeasibilityTests(unittest.TestCase):
         root=Path(__file__).resolve().parents[1]
         a=SimpleNamespace(model=str(root/'models/dodo_floating.xml'),output=str(Path(self.tmp.name)/'result.json'),
             support='left',budget_seconds=60,clearance_mm=5.,joint_margin_deg=2.,torque_limit=3.8,
-            max_nfev=100,path_knots=16,max_paths=6,max_candidates=144,seed=20261031)
+            max_nfev=100,path_knots=16,max_paths=6,max_candidates=144,seed=20261031,refine_lift=False)
         self.s=Search(a)
         self.balance=np.array(json.loads((root/'results/single_support_left/single_support_left.json').read_text())['pose_search']['single_support_qpos'])
 
