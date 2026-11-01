@@ -62,7 +62,7 @@ def load_plan(r, path, model_path):
 def governor(diag, metrics):
     """Smoothly slow the path before a tracking/geometry pause threshold."""
     limits = {
-        'joint_tracking': (diag['max_joint_tracking_error_deg'], 2.5, 5.),
+        'joint_tracking': (diag['max_joint_tracking_error_deg'], 8., 15.),
         'com_tracking': (diag['com_tracking_error_m'], .0025, .005),
         'body_clearance': (-metrics['minimum_body_clearance_m'], -.005, -.004),
         'joint_margin': (-diag['min_joint_margin_deg'], -1.5, -.75),
@@ -97,6 +97,8 @@ def parser():
     p.add_argument('--force-ki', type=float, default=.3)
     p.add_argument('--unload-ramp-seconds', type=float, default=4.)
     p.add_argument('--disable-active-unloading', action='store_true')
+    p.add_argument('--instant-point-contact', action='store_true',
+                   help='Diagnostic comparison: remove non-pivot force variables immediately')
     p.add_argument('--video', default='')
     p.add_argument('--fps', type=int, default=30)
     # Keep v2 force PI; disable its off-path IK/COM correction.
@@ -117,6 +119,7 @@ def run(args):
         'qpos_resets_after_initialization': 0, 'support_wrenches_applied': False,
         'includes_lift': False, 'active_unloading_enabled': not args.disable_active_unloading,
         'off_path_posture_correction_enabled': False,
+        'contact_force_handoff_enabled': not args.instant_point_contact,
         'versions': {'mujoco': mujoco.__version__, 'numpy': np.__version__},
         'success_thresholds': {'hold_seconds': args.hold_seconds, 'swing_force_fraction_max': .05,
             'com_margin_m_min': .002, 'cop_margin_m_min': .002, 'body_clearance_m_min': .005,
@@ -185,7 +188,16 @@ def run(args):
                 force_share = {'right': unload.command_N/r.weight, 'left': 1.-unload.command_N/r.weight}
                 weight = args.force_weight*v2.blend(elapsed)
             stats = {}
-            tau, stats = qp.solve(d, active, qref, com, refs, force_share=force_share, force_weight=weight)
+            caps = None
+            if phase != 'settle' and not args.instant_point_contact:
+                # Retain possible forces until measured sole corners leave the
+                # compliant floor. This changes the QP contact estimate, not the
+                # MuJoCo model or the validated geometric reference.
+                heights = r.corners(d, 'right')[:,2]-r.ground_z
+                caps = {'right': 3*r.weight*np.exp(-(np.maximum(heights,0.)/.001)**2)}
+                caps['right'][2] = 3*r.weight
+            tau, stats = qp.solve(d, active, qref, com, refs, force_share=force_share,
+                                 force_weight=weight, force_contact_caps=caps)
             d.ctrl[r.aids] = np.clip(tau, r.limits[:,0], r.limits[:,1])
             mujoco.mj_step(m, d); mujoco.mj_forward(m, d)
             metrics = v2.measurements(r, d, 'left')
@@ -198,6 +210,7 @@ def run(args):
                 'release_blockers_all': '|'.join(k for k,v in gate.items() if not v),
                 'success_streak_s': streak, 'force_objective_enabled': int(force_enabled),
                 'force_objective_weight': weight if force_enabled else 0.,
+                **{f'right_corner{i}_force_cap_N': float(caps['right'][i]) if caps is not None else (3*r.weight if i in active['right'] else 0.) for i in range(4)},
                 'pivot_anchor_error_m': float(np.linalg.norm(r.corners(d,'right')[2]-anchor)),
                 **metrics, **diag, **stats,
                 **(unload.telemetry() if force_enabled else unload.empty_telemetry())}
@@ -238,6 +251,9 @@ def run(args):
         if 'r' in locals():
             summary.update(simulation_time_s=float(r.d.time), final_measurements=v2.measurements(r,r.d,'left'),
                 final_qpos=r.d.qpos.tolist(), final_qvel=r.d.qvel.tolist())
+            if qref is not None:
+                summary['last_target_qpos'] = qref.tolist()
+                summary['last_target_com_m'] = v2.pose_targets(r,qref)[0].tolist()
         if rows:
             with prefix.with_suffix('.csv').open('w', newline='') as f:
                 writer_csv = csv.DictWriter(f, fieldnames=sorted(set().union(*(x.keys() for x in rows))))

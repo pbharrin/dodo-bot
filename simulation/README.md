@@ -26,3 +26,7 @@ The model retains its original 130 mm hip spacing. No geometry changes were made
 ## Planning-only release feasibility
 
 The [feasibility search](experiments/FEASIBILITY_SEARCH.md) found a sampled quasi-static release-only path on the unchanged model. [Results and the exported plan](results/feasibility_search/README.md) distinguish static force feasibility from an airborne transition and dynamic tracking.
+
+## Dynamic outer-toe release test
+
+[The release-only controller experiment](experiments/RELEASE_TEST.md) tracks the exported outer-toe path with v2's torque controller and measured-force feedback. It adds a contact-force handoff and progress governor. [Recorded dynamic results](results/release_test/README.md) distinguish early tracking failures from endpoint unloading; a release or airborne transition has not yet been demonstrated.
