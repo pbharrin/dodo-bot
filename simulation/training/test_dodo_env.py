@@ -1,0 +1,95 @@
+"""CPU checks for the v5 model and training environment (MJX JAX backend).
+
+    python -m unittest discover -s simulation/training -p test_dodo_env.py
+
+These run before spending GPU time. They check plumbing and physics sanity, not
+policy quality. On the GPU machine also run them against MJX-Warp:
+
+    DODO_TEST_IMPL=warp python -m unittest discover -s simulation/training -p test_dodo_env.py
+"""
+import os
+import sys
+import unittest
+from pathlib import Path
+
+import jax
+import jax.numpy as jp
+import mujoco
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dodo_env  # noqa: E402
+
+IMPL = os.environ.get('DODO_TEST_IMPL', 'jax')
+ENV = dodo_env.DodoStepInPlace(config_overrides={'impl': IMPL, 'naconmax': 64})
+RESET = jax.jit(ENV.reset)
+STEP = jax.jit(ENV.step)
+
+
+class ModelTest(unittest.TestCase):
+    def test_mass_and_geometry(self):
+        m = ENV.mj_model
+        self.assertTrue(6.0 <= m.body_subtreemass[1] <= 10.0)  # plan range
+        d = mujoco.MjData(m)
+        mujoco.mj_resetDataKeyframe(m, d, 0)
+        mujoco.mj_forward(m, d)
+        for f in dodo_env.FEET:
+            self.assertAlmostEqual(d.site(f).xpos[2], 0.0, delta=0.002)
+        self.assertEqual(m.nu, 10)
+
+    def test_mjx_matches_mujoco_zero_action(self):
+        """MJX and C MuJoCo agree on 1 s of passive standing."""
+        m = ENV.mj_model
+        d = mujoco.MjData(m)
+        mujoco.mj_resetDataKeyframe(m, d, 0)
+        mx = ENV.mjx_model
+        dx = jax.jit(lambda q: dodo_env.mjx_env.make_data(m, qpos=q, ctrl=jp.zeros(10), impl=IMPL, naconmax=64))(d.qpos)
+        stepper = jax.jit(lambda dd: dodo_env.mjx_env.step(mx, dd, jp.zeros(10), 50))
+        for _ in range(5):
+            dx = stepper(dx)
+        for _ in range(250):
+            mujoco.mj_step(m, d)
+        np.testing.assert_allclose(np.asarray(dx.qpos), d.qpos, atol=2e-3)
+
+
+class EnvTest(unittest.TestCase):
+    def test_obs_shapes_and_finite(self):
+        s = RESET(jax.random.PRNGKey(0))
+        self.assertEqual(s.obs['state'].shape, (46,))
+        self.assertTrue(bool(jp.all(jp.isfinite(s.obs['privileged_state']))))
+
+    def test_zero_action_stands_without_pushes(self):
+        """The home pose is statically stable under PD: 4 s, zero action, no push."""
+        env = dodo_env.DodoStepInPlace(config_overrides={
+            'impl': IMPL, 'naconmax': 64, 'push_config.enable': False})
+        step = jax.jit(env.step)
+        s = jax.jit(env.reset)(jax.random.PRNGKey(1))
+        for _ in range(200):
+            s = step(s, jp.zeros(10))
+            self.assertLess(float(s.done), 0.5)
+        self.assertGreater(float(s.data.qpos[2]), 0.37)
+        self.assertTrue(bool(jp.all(ENV._contact(s.data))))
+        self.assertTrue(np.isfinite(float(s.reward)))
+
+    def test_gait_clock(self):
+        s = RESET(jax.random.PRNGKey(2))
+        info = dict(s.info, stepping=jp.array(1.0), swing_height=jp.array(0.04),
+                    phase=jp.array([0.8, 0.3]))
+        stance, h = ENV._gait(info)
+        np.testing.assert_array_equal(np.asarray(stance), [False, True])
+        self.assertAlmostEqual(float(h[0]), 0.04, places=5)   # mid-swing
+        self.assertEqual(float(h[1]), 0.0)
+        info['stepping'] = jp.array(0.0)
+        stance, h = ENV._gait(info)
+        self.assertTrue(bool(jp.all(stance)) and float(jp.max(h)) == 0.0)
+
+    def test_domain_randomization_batches(self):
+        keys = jax.random.split(jax.random.PRNGKey(3), 4)
+        model, in_axes = dodo_env.domain_randomize(ENV.mjx_model, keys)
+        self.assertEqual(model.body_mass.shape[0], 4)
+        self.assertEqual(model.actuator_forcerange.shape, (4, 10, 2))
+        self.assertEqual(in_axes.body_mass, 0)
+
+
+if __name__ == '__main__':
+    unittest.main()
