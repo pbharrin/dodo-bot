@@ -16,7 +16,53 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 
 - **CPU-validated (JAX backend, Apple M2):** all tests pass, the full train → save → evaluate → render pipeline runs, and the zero-action robot stands for 4 s. See "Validation" below for a short CPU learning-signal run.
 - **GPU-validated (MJX-Warp, g5.xlarge A10G, 2026-11-02):** all 6 tests (the 7th, a config check, was added afterwards) pass with `DODO_TEST_IMPL=warp`. A 10M-step trial ran at about 35k steps/s. Eval: 100% survival over 20 s with pushes in all 64 episodes, but stepping contact match 0.61 (the never-lift baseline is 0.60) and peak foot height about 1 cm. It learned to stand, not to step.
-- **Not yet run:** a full-length (150M-step) training run. No walking or stepping result is claimed yet.
+- **Stage 1 trained (2026-11-02):** 150M steps on the g5.xlarge in 41 min. The policy stands and steps in place with 4 cm foot clearance and survives every evaluation episode with pushes. See "Stage 1 result" below. Not yet checked: C MuJoCo replay, rope compliance, measured actuator limits. No walking yet.
+
+## Stage 1 result (2026-11-02)
+
+Run `stage1_v5`: 150M env steps, 8192 envs, MJX-Warp on a g5.xlarge (A10G), domain randomization on, default config. Training took 2434 s (about 62k steps/s) plus 46 s of JIT. The run directory isn't in git (`simulation/results/local/` is ignored).
+
+**Learning curve.** Episodes reached the full 20 s by 10M steps. Contact match rose through about 45M steps and then plateaued at about 0.86. Reward plateaued at about 117. More steps at this config are unlikely to help.
+
+| Steps | Eval reward | Episode length | Contact match (all episodes) |
+| ---: | ---: | ---: | ---: |
+| 0 | -1.0 | 45 | 0.52 |
+| 10.8M | 99.8 | 1000 | 0.74 |
+| 21.6M | 111.5 | 1000 | 0.82 |
+| 43.3M | 115.5 | 1000 | 0.85 |
+| 86.5M | 117.0 | 1000 | 0.87 |
+| 151.4M | 116.4 | 993 | 0.87 |
+
+**Evaluation.** 64 deterministic 20 s episodes on the nominal model with sensor noise, pushes and random action delay. The figures are from `evaluate.py --impl jax` on a Mac; the GPU evaluation at the end of training gave the same picture (stepping contact match 0.84, foot height 4.2 cm, peak torque 10.0 Nm).
+
+| | Stepping (47 episodes) | Standing (17 episodes) |
+| --- | ---: | ---: |
+| Survival over 20 s | 100% | 100% |
+| Contact match (never-lift baseline 0.60) | 0.84 | 1.00 |
+| Mean peak foot height (target 3–5 cm) | 4.2 cm | 0.9 cm |
+| Base drift over 20 s | 20 cm | 1 cm |
+| Peak joint torque | 9.3 Nm | 4.7 Nm |
+
+**Joint torque while stepping** (N m, steady stepping, 38.8k control steps outside the 1 s after a push):
+
+| Joint | Left p95 | Left p99 | Left max | Left RMS | Right p95 | Right p99 | Right max | Right RMS |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| hip yaw | 1.5 | 1.9 | 2.8 | 0.7 | 1.0 | 1.4 | 2.4 | 0.5 |
+| hip roll | 4.8 | 5.7 | 7.0 | 2.4 | 4.5 | 5.1 | 8.6 | 2.5 |
+| hip pitch | 1.4 | 2.3 | 3.7 | 0.7 | 1.5 | 2.0 | 3.6 | 0.8 |
+| knee pitch | 4.8 | 5.9 | 8.0 | 2.5 | 3.2 | 4.1 | 5.8 | 1.8 |
+| ankle pitch | 3.8 | 6.4 | 7.8 | 1.7 | 2.0 | 2.8 | 4.3 | 0.9 |
+
+Findings:
+
+- **No joint ever hits the 10 Nm limit** (0% of control steps saturated, stepping or standing).
+- **The torque comes from stepping itself, not from pushes.** The push-recovery table is nearly identical to the one above; it adds only the single highest peak (left ankle, 9.3 Nm). Single support needs it: hip roll, knee and ankle reach p95 of 4–5 Nm and p99 of up to 6.4 Nm on every gait cycle, with short peaks of 7–9 Nm. That matches the 6.7 Nm static hip-roll moment of the 6.84 kg model.
+- **RMS is at most 2.5 Nm** (hip roll and knee). This is the number to compare with the measured continuous rating; peaks must fit the measured short-term rating (about 9 Nm ≈ 14 A at the plan's 0.625 Nm/A estimate).
+- **The gait is asymmetric:** the left knee and ankle carry noticeably more torque than the right (p95 4.8 vs 3.2 Nm and 3.8 vs 2.0 Nm). No symmetry term is in the reward. Worth watching in videos and possibly penalizing.
+- **Standing is cheap:** p95 below 2 Nm on every joint.
+- **Drift of 20 cm in 20 s** while stepping: slow wandering rather than stepping on the spot. A candidate for a stronger base-velocity penalty in a later run.
+
+Hardware implication for milestone 2: an actuator module that holds about 2.5 Nm continuous and about 9–10 Nm for short bursts covers this policy, with the masses currently estimated in the model. If the bench shows less, retrain with the measured limit; the policy will trade gait aggressiveness and push recovery for it.
 
 ## Validation (CPU, 2026-11-01)
 
