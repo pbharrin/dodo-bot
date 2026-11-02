@@ -49,6 +49,8 @@ def default_config() -> config_dict.ConfigDict:
         impl='warp',                  # 'warp' on the GPU box, 'jax' for CPU smoke tests
         naconmax=16 * 8192,           # contact buffer across all worlds (<= 8 used per world)
         njmax=96,                     # constraint rows per world
+        solver_iterations=None,       # None = model XML value (2); raise to 3-4 if Warp
+        ls_iterations=None,           #   warns 'solver iterations limit reached' often
         # --- task ---
         stand_probability=0.25,       # fraction of episodes that only stand
         gait_frequency=[1.0, 1.5],    # full left+right cycles per second
@@ -105,14 +107,21 @@ class DodoStepInPlace(mjx_env.MjxEnv):
 
     def __init__(
         self,
-        config: config_dict.ConfigDict = default_config(),
+        config: Optional[config_dict.ConfigDict] = None,
         config_overrides: Optional[Dict[str, Union[str, int, list[Any]]]] = None,
         xml_path: Path = MODEL_PATH,
     ):
+        # Fresh config per instance: overrides are applied in place, so a shared
+        # default would leak one env's overrides into the next.
+        config = default_config() if config is None else config.copy_and_resolve_references()
         super().__init__(config, config_overrides)
         self._xml_path = str(xml_path)
         self._mj_model = mujoco.MjModel.from_xml_path(self._xml_path)
         self._mj_model.opt.timestep = self.sim_dt
+        if self._config.solver_iterations is not None:
+            self._mj_model.opt.iterations = int(self._config.solver_iterations)
+        if self._config.ls_iterations is not None:
+            self._mj_model.opt.ls_iterations = int(self._config.ls_iterations)
         self._mjx_model = mjx.put_model(self._mj_model, impl=self._config.impl)
         self._post_init()
 

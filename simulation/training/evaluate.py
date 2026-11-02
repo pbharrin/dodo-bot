@@ -13,13 +13,15 @@ import os
 import sys
 from pathlib import Path
 
-os.environ.setdefault('MUJOCO_GL', 'egl')
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import render_backend  # noqa: E402  (must run before mujoco is imported)
+
+CAN_RENDER = render_backend.setup()
 
 import jax
 import jax.numpy as jp
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 import dodo_env  # noqa: E402
 
 
@@ -80,24 +82,33 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
     stats = {'all': grp(np.ones_like(stepping)), 'stepping': grp(stepping), 'standing': grp(~stepping),
              'episode_length_s': episode_length * env.dt}
 
-    if num_videos:
-        import mediapy
-        import mujoco
-        m = env.mj_model
-        d = mujoco.MjData(m)
-        with mujoco.Renderer(m, height=480, width=640) as r:
-            for i in range(min(num_videos, num_episodes)):
-                frames = []
-                for t in range(0, episode_length, 2):
-                    d.qpos[:] = traj['qpos'][t, i]
-                    mujoco.mj_forward(m, d)
-                    r.update_scene(d, camera='track')
-                    frames.append(r.render())
-                mode = 'step' if stepping[i] else 'stand'
-                path = Path(outdir) / f'rollout{i}_{mode}.mp4'
-                mediapy.write_video(str(path), frames, fps=1.0 / env.dt / 2)
-                print('Wrote', path)
+    if num_videos and CAN_RENDER:
+        try:
+            _render(env, traj, stepping, episode_length, min(num_videos, num_episodes), outdir)
+        except Exception as e:  # never lose the stats over a rendering problem
+            print(f'WARNING: video rendering failed ({type(e).__name__}: {e}); stats are unaffected.')
+    elif num_videos:
+        print('Rendering unavailable (MUJOCO_GL=disable): no videos written.')
     return stats
+
+
+def _render(env, traj, stepping, episode_length, num_videos, outdir):
+    import mediapy
+    import mujoco
+    m = env.mj_model
+    d = mujoco.MjData(m)
+    with mujoco.Renderer(m, height=480, width=640) as r:
+        for i in range(num_videos):
+            frames = []
+            for t in range(0, episode_length, 2):
+                d.qpos[:] = traj['qpos'][t, i]
+                mujoco.mj_forward(m, d)
+                r.update_scene(d, camera='track')
+                frames.append(r.render())
+            mode = 'step' if stepping[i] else 'stand'
+            path = Path(outdir) / f'rollout{i}_{mode}.mp4'
+            mediapy.write_video(str(path), frames, fps=1.0 / env.dt / 2)
+            print('Wrote', path)
 
 
 def load_policy(run_dir: Path, env):

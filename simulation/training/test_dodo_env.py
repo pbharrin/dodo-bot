@@ -83,6 +83,13 @@ class EnvTest(unittest.TestCase):
         stance, h = ENV._gait(info)
         self.assertTrue(bool(jp.all(stance)) and float(jp.max(h)) == 0.0)
 
+    def test_solver_override_does_not_leak(self):
+        e = dodo_env.DodoStepInPlace(config_overrides={'impl': IMPL, 'naconmax': 64,
+                                                       'solver_iterations': 4})
+        self.assertEqual(e.mj_model.opt.iterations, 4)
+        self.assertEqual(dodo_env.DodoStepInPlace(config_overrides={'impl': IMPL, 'naconmax': 64})
+                         .mj_model.opt.iterations, 2)
+
     def test_domain_randomization_batches(self):
         keys = jax.random.split(jax.random.PRNGKey(3), 4)
         model, in_axes = dodo_env.domain_randomize(ENV.mjx_model, keys)

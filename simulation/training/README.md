@@ -9,12 +9,14 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 | `dodo_env.py` | `DodoStepInPlace` environment, rewards, observations, domain randomization |
 | `train_ppo.py` | PPO training, checkpoints, final evaluation and videos |
 | `evaluate.py` | Reload a run, run deterministic rollouts, write `eval.json` and videos |
+| `render_backend.py` | Picks EGL for headless video, or falls back to no rendering if the GL libraries are missing |
 | `test_dodo_env.py` | Pre-flight checks: model mass/geometry, MJX vs MuJoCo, passive standing, gait clock, randomization |
 
 ## Status
 
 - **CPU-validated (JAX backend, Apple M2):** all tests pass, the full train → save → evaluate → render pipeline runs, and the zero-action robot stands for 4 s. See "Validation" below for a short CPU learning-signal run.
-- **Not yet run:** MJX-Warp on a GPU, or a full-length training run. No walking or stepping result is claimed yet. The first GPU session should start with the Warp tests below.
+- **GPU-validated (MJX-Warp, g5.xlarge A10G, 2026-11-02):** all 6 tests (the 7th, a config check, was added afterwards) pass with `DODO_TEST_IMPL=warp`. A 10M-step trial ran at about 35k steps/s. Eval: 100% survival over 20 s with pushes in all 64 episodes, but stepping contact match 0.61 (the never-lift baseline is 0.60) and peak foot height about 1 cm. It learned to stand, not to step.
+- **Not yet run:** a full-length (150M-step) training run. No walking or stepping result is claimed yet.
 
 ## Validation (CPU, 2026-11-01)
 
@@ -36,19 +38,49 @@ Final deterministic eval, 64 episodes with pushes, noise and latency:
 
 So, as expected, the policy learned to stand and absorb pushes first. Stepping has not emerged at this budget. On the GPU run, watch for stepping contact match to rise above 0.6 and peak foot height to approach 3–5 cm. If it stays stuck in "stand still" well past ~50M steps, try `--env-override stand_probability=0.0` and a larger `feet_phase` / `contact_match` scale.
 
-## g6e.xlarge setup
+## GPU machine setup
 
-g6e.xlarge = 1 × NVIDIA L40S (48 GB), 4 vCPU, 32 GiB RAM. Use an Ubuntu 22.04/24.04 AMI with an NVIDIA driver that supports CUDA 12 (e.g. the AWS Deep Learning Base GPU AMI). 4 vCPUs are enough because the simulation runs on the GPU.
+Tested on a **g5.xlarge** (1 × NVIDIA A10G 24 GB, 4 vCPU, 16 GiB RAM), Python 3.14. A g6e.xlarge (1 × L40S 48 GB, 32 GiB RAM) should be faster. 4 vCPUs are enough because the simulation runs on the GPU. If the GPU runs out of memory, use `--num-envs 4096`.
+
+Measured on the g5.xlarge: about 35k env steps/s with 8192 envs (10M steps in 283 s plus 46 s of JIT), so the default 150M-step run takes about 70 min.
+
+### Recommended: AWS Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04)
+
+This AMI ships the NVIDIA driver, so `nvidia-smi` works on first boot. [uv](https://docs.astral.sh/uv/) makes the venv and fetches Python 3.14 if needed (3.11–3.14 all work; the pinned requirements have binary wheels for each).
 
 ```bash
-nvidia-smi                                  # driver present, L40S visible
-sudo apt-get install -y python3.11-venv ffmpeg libegl1   # EGL for headless video
-git clone <this repo> && cd dodo-bot
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -U pip
-pip install -r simulation/training/requirements.txt "jax[cuda12]==0.9.2"
-python -c "import jax; print(jax.devices())"   # expect a CudaDevice
+nvidia-smi                                   # GPU visible
+curl -LsSf https://astral.sh/uv/install.sh | sh && source $HOME/.local/bin/env
+git clone https://github.com/pbharrin/dodo-bot.git && cd dodo-bot
+git checkout v5-policy-training
+uv venv --python 3.14 .venv && source .venv/bin/activate
+uv pip install -r simulation/training/requirements.txt "jax[cuda12]==0.9.2"
+python -c "import jax; print(jax.devices())"   # expect [CudaDevice(id=0)]
 ```
+
+If JAX complains about cuDNN/cuSPARSE versions, `unset LD_LIBRARY_PATH` (the AMI's own CUDA can shadow the pip-installed one). Use `uv pip install`, not `pip`, inside a uv venv.
+
+### Fallback: plain Ubuntu AMI (tested on 26.04)
+
+Plain Ubuntu has no NVIDIA driver (`nvidia-smi: command not found`, and JAX fails with `cuInit(0) failed: Unknown CUDA error 303`). Install the driver and reboot, then follow the steps above from `curl`:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ubuntu-drivers-common
+sudo ubuntu-drivers install --gpgpu nvidia:580-server
+sudo reboot
+```
+
+### Video rendering (optional)
+
+Videos need EGL/OpenGL system libraries. Without them, `import mujoco` fails with `'NoneType' object has no attribute 'eglQueryString'` or `... 'glGetError'`. To enable rendering:
+
+```bash
+sudo apt-get install -y libegl1 libegl-mesa0 libgl1 libopengl0 ffmpeg
+sudo apt-get install -y libnvidia-gl-580-server   # optional, GPU rendering; must match the driver
+```
+
+You don't need them to train. `train_ppo.py` and `evaluate.py` check for EGL at startup; if it's missing they print a warning, set `MUJOCO_GL=disable` and skip videos. You can also set `MUJOCO_GL=disable` yourself. Render later on a Mac by copying the run directory back and running `python simulation/training/evaluate.py <run_dir> --impl jax`.
 
 Pre-flight on the GPU, using both backends:
 
@@ -57,7 +89,7 @@ python -m unittest discover -s simulation/training -p test_dodo_env.py
 DODO_TEST_IMPL=warp python -m unittest discover -s simulation/training -p test_dodo_env.py
 ```
 
-Short GPU trial (about 10M steps) to check throughput and that reward climbs:
+Short GPU trial (about 10M steps, ~5 min on a g5) to check throughput and that reward climbs:
 
 ```bash
 python simulation/training/train_ppo.py --run-name warp_trial --num-timesteps 10000000 --num-evals 5
@@ -78,6 +110,7 @@ Useful flags:
 - `--no-randomization` is a debugging baseline. If the policy can't learn without randomization, the rewards are the problem, not robustness.
 - `--env-override KEY=JSON` changes env config without editing code, e.g. `stand_probability=0.0`, `push_config.enable=false`, `swing_height=[0.04,0.06]`, `lin_vel_x=[-0.2,0.3]` (stage 2: walking).
 - `--impl jax` runs on CPU or without Warp. It works but is much slower.
+- `--env-override solver_iterations=4` (and `ls_iterations=…`) overrides the model's contact-solver iterations (default 2, from the XML). Warp prints `solver iterations limit reached - please increase iterations beyond 2` when a step doesn't converge. Occasional warnings are expected; if they appear constantly, raise it to 3–4 at some speed cost.
 
 If Warp reports contact or constraint overflow, raise `naconmax` (total contacts across all worlds; each world uses up to 8 foot-floor contacts) or `njmax` (constraint rows per world) with `--env-override`.
 

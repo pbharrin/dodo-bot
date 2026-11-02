@@ -24,8 +24,11 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import render_backend  # noqa: E402  (must run before mujoco is imported)
+
+CAN_RENDER = render_backend.setup()
 os.environ.setdefault('XLA_PYTHON_CLIENT_PREALLOCATE', 'false')
-os.environ.setdefault('MUJOCO_GL', 'egl')
 os.environ['XLA_FLAGS'] = os.environ.get('XLA_FLAGS', '') + ' --xla_gpu_triton_gemm_any=True'
 
 import jax  # noqa: E402
@@ -35,7 +38,6 @@ from brax.training.agents.ppo import train as ppo  # noqa: E402
 from ml_collections import config_dict  # noqa: E402
 from mujoco_playground import wrapper  # noqa: E402
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 import dodo_env  # noqa: E402
 import evaluate  # noqa: E402
 
@@ -87,6 +89,9 @@ def main():
     ap.add_argument('--no-video', action='store_true')
     ap.add_argument('--smoke', action='store_true', help='tiny CPU-sized run to test the pipeline')
     args = ap.parse_args()
+    if not CAN_RENDER and not args.no_video:
+        print('Rendering unavailable: skipping videos (render later with evaluate.py).')
+        args.no_video = True
 
     run_name = args.run_name or datetime.now().strftime('dodo_step_%Y%m%d_%H%M%S')
     logdir = REPO / 'simulation' / 'results' / 'local' / 'train' / run_name
