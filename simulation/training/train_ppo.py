@@ -167,7 +167,7 @@ def main():
         num_videos=0 if args.no_video else args.num_videos, outdir=logdir, seed=args.seed + 1)
     with open(logdir / 'eval.json', 'w') as f:
         json.dump(stats, f, indent=2)
-    print(json.dumps(stats, indent=2))
+    print(json.dumps({k: v for k, v in stats.items() if k != 'torque'}, indent=2))
 
 
 if __name__ == '__main__':

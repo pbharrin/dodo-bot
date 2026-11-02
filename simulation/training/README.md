@@ -128,6 +128,9 @@ If Warp reports contact or constraint overflow, raise `naconmax` (total contacts
 - `mean_peak_foot_height_m` (target swing clearance 3–5 cm)
 - `base_drift_m` (should stay small for in-place stepping)
 - `peak_joint_torque_Nm` (compare with the 10 Nm limit and, later, measured actuator limits)
+- `torque`: per joint, the fraction of control steps at the torque limit (`saturated_frac`, |τ| ≥ 98% of limit) plus p50/p95/p99/max/RMS torque. It is split into `steady` and `push_recovery` (the 1 s after each push). Saturation during push recovery is acceptable. Saturation in `steady` stepping means the gait needs more torque than the actuator has. The same table prints to the console.
+
+Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`). Those results go to `eval_override.json`, so the training-time `eval.json` is kept.
 
 **Watch the videos.** Reward can go up for degenerate reasons: shuffling, toe-dragging, or one foot vibrating. Common fixes: raise `feet_phase` or `contact_match` if the feet barely lift, raise `feet_slip` for shuffling, raise `action_rate` for jitter.
 

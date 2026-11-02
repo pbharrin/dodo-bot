@@ -45,7 +45,8 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
             rec = dict(qpos=s.data.qpos, alive=alive, stepping=s.info['stepping'],
                        match=jp.mean(stance == contact, axis=-1),
                        foot_z=s.data.site_xpos[:, feet, 2],
-                       tau=jp.max(jp.abs(s.data.actuator_force), axis=-1))
+                       tau=jp.abs(s.data.actuator_force),              # (N, nu)
+                       pushed=jp.linalg.norm(s.info['push'], axis=-1) > 0)
             return (s, k, alive), rec
         alive0 = jp.ones(num_episodes, dtype=bool)
         _, traj = jax.lax.scan(body, (state, key, alive0), None, length=episode_length)
@@ -76,11 +77,13 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
             'contact_match': float(np.nanmean(match[:, mask])),
             'mean_peak_foot_height_m': float(np.nanmean(np.where(alive[..., None], foot_z, np.nan)[:, mask].max(0))),
             'base_drift_m': float(drift[mask].mean()),
-            'peak_joint_torque_Nm': float(np.where(alive, traj['tau'], 0)[:, mask].max()),
+            'peak_joint_torque_Nm': float(np.where(alive, traj['tau'].max(-1), 0)[:, mask].max()),
         }
 
     stats = {'all': grp(np.ones_like(stepping)), 'stepping': grp(stepping), 'standing': grp(~stepping),
              'episode_length_s': episode_length * env.dt}
+    stats['torque'] = torque_stats(env, traj, alive, stepping)
+    print_torque_table(stats['torque'])
 
     if num_videos and CAN_RENDER:
         try:
@@ -90,6 +93,65 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
     elif num_videos:
         print('Rendering unavailable (MUJOCO_GL=disable): no videos written.')
     return stats
+
+
+PUSH_RECOVERY_S = 1.0   # steps within this long after a push count as push recovery
+SATURATION_FRAC = 0.98  # |torque| >= 98% of the actuator limit counts as saturated
+
+
+def torque_stats(env, traj, alive, stepping):
+    """Per-joint torque use, split into steady motion vs. the second after a push.
+
+    Answers: is the torque limit hit on every step (gait needs more than the
+    actuator has) or only while recovering from pushes (acceptable)?
+    """
+    m = env.mj_model
+    names = [m.actuator(i).name for i in range(m.nu)]
+    limit = np.abs(m.actuator_forcerange[:, 1])
+    tau = traj['tau']                                        # (T, N, nu)
+    T = tau.shape[0]
+    t = np.arange(T)[:, None]
+    last_push = np.maximum.accumulate(np.where(traj['pushed'], t, -10**9), axis=0)
+    recovering = (t - last_push) * env.dt < PUSH_RECOVERY_S  # (T, N)
+
+    def joint_table(mask):                                   # mask (T, N) of steps to include
+        if not mask.any():
+            return None
+        x = tau[mask]                                        # (K, nu)
+        sat = x >= SATURATION_FRAC * limit
+        return {
+            'control_steps': int(mask.sum()),
+            'joints': {n: {
+                'saturated_frac': round(float(sat[:, j].mean()), 4),
+                'p50_Nm': round(float(np.percentile(x[:, j], 50)), 2),
+                'p95_Nm': round(float(np.percentile(x[:, j], 95)), 2),
+                'p99_Nm': round(float(np.percentile(x[:, j], 99)), 2),
+                'max_Nm': round(float(x[:, j].max()), 2),
+                'rms_Nm': round(float(np.sqrt(np.mean(x[:, j] ** 2))), 2),
+            } for j, n in enumerate(names)},
+        }
+
+    out = {'limit_Nm': limit.tolist(), 'saturation_threshold': SATURATION_FRAC,
+           'push_recovery_window_s': PUSH_RECOVERY_S}
+    for mode, ep in (('stepping', stepping), ('standing', ~stepping)):
+        base = alive & ep[None, :]
+        out[mode] = {'steady': joint_table(base & ~recovering),
+                     'push_recovery': joint_table(base & recovering)}
+    return out
+
+
+def print_torque_table(ts):
+    for mode in ('stepping', 'standing'):
+        for phase in ('steady', 'push_recovery'):
+            tab = ts[mode][phase]
+            if tab is None:
+                continue
+            print(f'\nTorque, {mode} / {phase} ({tab["control_steps"]} control steps, '
+                  f'saturated = |tau| >= {ts["saturation_threshold"]:.0%} of limit)')
+            print(f'  {"joint":<20}{"sat %":>7}{"p50":>7}{"p95":>7}{"p99":>7}{"max":>7}{"rms":>7}')
+            for n, r in tab['joints'].items():
+                print(f'  {n:<20}{100 * r["saturated_frac"]:>7.2f}{r["p50_Nm"]:>7.2f}{r["p95_Nm"]:>7.2f}'
+                      f'{r["p99_Nm"]:>7.2f}{r["max_Nm"]:>7.2f}{r["rms_Nm"]:>7.2f}')
 
 
 def _render(env, traj, stepping, episode_length, num_videos, outdir):
@@ -143,8 +205,10 @@ def main():
     env = dodo_env.DodoStepInPlace(config_overrides=overrides)
     policy, _ = load_policy(args.run_dir, env)
     stats = evaluate(env, policy, cfg['ppo']['episode_length'], args.episodes, args.videos, args.run_dir)
-    (args.run_dir / 'eval.json').write_text(json.dumps(stats, indent=2))
-    print(json.dumps(stats, indent=2))
+    out = args.run_dir / ('eval.json' if not args.env_override else 'eval_override.json')
+    out.write_text(json.dumps(stats, indent=2))
+    print(json.dumps({k: v for k, v in stats.items() if k != 'torque'}, indent=2))
+    print('Wrote', out)
 
 
 if __name__ == '__main__':
