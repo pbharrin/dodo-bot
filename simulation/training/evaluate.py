@@ -48,6 +48,7 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
                        tau=jp.abs(s.data.actuator_force),              # (N, nu)
                        pushed=jp.linalg.norm(s.info['push'], axis=-1) > 0,
                        command=s.info['command'],
+                       gait_freq=s.info['gait_freq'],
                        linvel=jax.vmap(lambda d: env._sensor(d, 'local_linvel'))(s.data),
                        yaw_rate=jax.vmap(lambda d: env._sensor(d, 'gyro'))(s.data)[:, 2])
             return (s, k, alive), rec
@@ -107,6 +108,8 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
              'episode_length_s': episode_length * env.dt}
     stats['torque'] = torque_stats(env, traj, alive, stepping)
     print_torque_table(stats['torque'])
+    stats['symmetry'] = symmetry_stats(env, traj, alive, stepping)
+    print_symmetry_table(stats['symmetry'])
 
     if num_videos and CAN_RENDER:
         try:
@@ -161,6 +164,88 @@ def torque_stats(env, traj, alive, stepping):
         out[mode] = {'steady': joint_table(base & ~recovering),
                      'push_recovery': joint_table(base & recovering)}
     return out
+
+
+LEG_JOINTS = ('hip_yaw', 'hip_roll', 'hip_pitch', 'knee_pitch', 'ankle_pitch')
+
+
+def symmetry_stats(env, traj, alive, stepping):
+    """Left vs right while stepping: range of motion, torque, and half-cycle mirror error.
+
+    range_of_motion: p95 - p5 of each joint's angle per episode, averaged over episodes.
+    mirror_error_rms: RMS of right(t) - M left(t - T/2) (and vice versa), the quantity
+    the symmetry reward penalizes; 'straight' restricts it to near-zero sideways and
+    yaw commands, where a symmetric gait is expected.
+    """
+    import dodo_env
+    q = traj['qpos'][..., 7:] - np.asarray(env._default_pose)        # (T, N, 10)
+    tau = traj['tau']
+    T = q.shape[0]
+    eps = np.where(stepping)[0]
+    if len(eps) == 0:
+        return None
+    rom = {'left': [], 'right': []}
+    for i in eps:
+        a = alive[:, i]
+        if a.sum() < 10:
+            continue
+        x = q[a, i]
+        r = np.percentile(x, 95, axis=0) - np.percentile(x, 5, axis=0)
+        rom['left'].append(r[:5])
+        rom['right'].append(r[5:])
+    rom = {k: np.mean(v, axis=0) for k, v in rom.items()}
+
+    # Half-cycle mirror error.
+    cmd = traj['command']
+    straight = (np.abs(cmd[..., 1]) < 0.03) & (np.abs(cmd[..., 2]) < 0.1)
+    sign = dodo_env.MIRROR_SIGN
+    err_all, err_straight = [], []
+    for i in eps:
+        k = int(round(0.5 / (float(traj['gait_freq'][0, i]) * env.dt)))
+        if k >= T:
+            continue
+        e = np.concatenate([q[k:, i, 5:] - sign * q[:-k, i, :5],
+                            q[k:, i, :5] - sign * q[:-k, i, 5:]], axis=-1)   # (T-k, 10)
+        ok = alive[k:, i] & alive[:-k, i]
+        err_all.append(e[ok])
+        err_straight.append(e[ok & straight[k:, i] & straight[:-k, i]])
+
+    def rms(chunks):
+        x = np.concatenate(chunks) if chunks else np.zeros((0, 10))
+        if len(x) == 0:
+            return None
+        r = np.sqrt(np.mean(x ** 2, axis=0))
+        return {j: round(float((r[n] + r[n + 5]) / 2), 4) for n, j in enumerate(LEG_JOINTS)}
+
+    st = alive & stepping[None, :]
+    p95 = np.percentile(tau[st], 95, axis=0)
+    joints = {}
+    for n, j in enumerate(LEG_JOINTS):
+        rl, rr = float(rom['left'][n]), float(rom['right'][n])
+        joints[j] = {
+            'rom_left_rad': round(rl, 4), 'rom_right_rad': round(rr, 4),
+            'rom_ratio_left_over_right': round(rl / rr, 3) if rr > 1e-6 else None,
+            'torque_p95_left_Nm': round(float(p95[n]), 2), 'torque_p95_right_Nm': round(float(p95[n + 5]), 2),
+        }
+    return {'joints': joints,
+            'mirror_error_rms_rad': {'all_stepping': rms(err_all), 'straight': rms(err_straight)}}
+
+
+def print_symmetry_table(sym):
+    if not sym:
+        return
+    me = sym['mirror_error_rms_rad']
+    print('\nLeft/right symmetry while stepping (ROM = p95-p5 joint angle, rad; '
+          'mirror err = RMS vs other leg half a cycle earlier)')
+    print(f'  {"joint":<12}{"ROM L":>8}{"ROM R":>8}{"L/R":>7}{"tau95 L":>9}{"tau95 R":>9}'
+          f'{"mirr all":>10}{"mirr str":>10}')
+    for j, r in sym['joints'].items():
+        ratio = r['rom_ratio_left_over_right']
+        fmt = lambda d: f'{d[j]:>10.3f}' if d else f'{"-":>10}'
+        print(f'  {j:<12}{r["rom_left_rad"]:>8.3f}{r["rom_right_rad"]:>8.3f}'
+              f'{(ratio if ratio is not None else float("nan")):>7.2f}'
+              f'{r["torque_p95_left_Nm"]:>9.2f}{r["torque_p95_right_Nm"]:>9.2f}'
+              f'{fmt(me["all_stepping"])}{fmt(me["straight"])}')
 
 
 def print_torque_table(ts):

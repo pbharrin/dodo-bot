@@ -36,6 +36,10 @@ from mujoco_playground._src import mjx_env
 MODEL_PATH = Path(__file__).resolve().parents[1] / 'models' / 'dodo_v5.xml'
 FEET = ('left_foot', 'right_foot')
 NUM_JOINTS = 10
+# Left<->right mirror of one leg's joints (hip yaw, hip roll, hip pitch, knee, ankle):
+# all joint axes are identical on both sides, so mirroring flips yaw and roll only.
+MIRROR_SIGN = np.array([-1.0, -1.0, 1.0, 1.0, 1.0])
+HIST_LEN = 32                  # control steps of joint history (covers half a cycle down to ~0.8 Hz)
 
 
 # Stage 2: walk slowly forward/back, sidestep a little and turn, from the stage-1
@@ -47,6 +51,7 @@ WALK_OVERRIDES = {
     'ang_vel_yaw': [-0.5, 0.5],
     'zero_command_probability': 0.2,
     'stand_probability': 0.15,
+    'reward_config.scales.symmetry': -4.0,
 }
 
 
@@ -91,6 +96,10 @@ def default_config() -> config_dict.ConfigDict:
         reward_config=config_dict.create(
             tracking_sigma=0.1,
             feet_phase_sigma=0.002,
+            # Symmetry: yaw/roll terms fade out for sideways or turning commands, which
+            # legitimately need an asymmetric gait. Scales in m/s and rad/s.
+            symmetry_lateral_sigma=0.03,
+            symmetry_yaw_sigma=0.1,
             scales=config_dict.create(
                 tracking_lin_vel=1.5,
                 tracking_ang_vel=0.75,
@@ -110,6 +119,7 @@ def default_config() -> config_dict.ConfigDict:
                 feet_distance=-10.0,
                 alive=1.0,
                 termination=-50.0,
+                symmetry=0.0,          # stage 2 uses -4.0 (WALK_OVERRIDES)
             ),
         ),
     )
@@ -224,6 +234,8 @@ class DodoStepInPlace(mjx_env.MjxEnv):
                 ko, (NUM_JOINTS,), minval=-cfg.encoder_offset, maxval=cfg.encoder_offset),
             'last_act': jp.zeros(NUM_JOINTS),
             'motor_targets': jp.zeros(NUM_JOINTS),
+            'q_hist': jp.zeros((HIST_LEN, NUM_JOINTS)),   # [0] = previous control step
+            'hist_len': 0,
             'push': jp.zeros(2),
             'push_step': 0,
             'push_interval_steps': jp.round(push_interval / self.dt).astype(jp.int32),
@@ -267,6 +279,9 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         info['push_step'] += 1
         info['step'] += 1
         info['last_act'] = action
+        q_now = data.qpos[7:] - self._default_pose
+        info['q_hist'] = jp.roll(info['q_hist'], 1, axis=0).at[0].set(q_now)
+        info['hist_len'] = jp.minimum(info['hist_len'] + 1, HIST_LEN)
         info['rng'], kc = jax.random.split(info['rng'])
         resample = info['step'] >= cfg.command_resample_steps
         info['command'] = jp.where(resample, self.sample_command(kc, info['stepping']), info['command'])
@@ -328,6 +343,33 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         ])
         return {'state': state, 'privileged_state': privileged}
 
+    # ------------------------------------------------------------------ symmetry
+    def half_cycle_steps(self, gait_freq):
+        """Control steps in half a gait cycle (clipped to the history length)."""
+        k = jp.round(0.5 / (gait_freq * self.dt)).astype(jp.int32)
+        return jp.clip(k, 1, HIST_LEN)
+
+    def _symmetry_error(self, q, info):
+        """Squared error between each leg now and the other leg, mirrored, half a cycle ago.
+
+        In a symmetric gait right(t) = M left(t - T/2) and left(t) = M right(t - T/2).
+        Returns (error, valid). Yaw/roll terms are weighted down for sideways or
+        turning commands.
+        """
+        rc = self._config.reward_config
+        k = self.half_cycle_steps(info['gait_freq'])
+        past = info['q_hist'][k - 1]                      # q at t - k
+        sign = jp.array(MIRROR_SIGN)
+        cmd = info['command']
+        straight = jp.exp(-jp.square(cmd[1] / rc.symmetry_lateral_sigma)
+                          - jp.square(cmd[2] / rc.symmetry_yaw_sigma))
+        w = jp.array([1.0, 1.0, 0.0, 0.0, 0.0]) * straight + jp.array([0.0, 0.0, 1.0, 1.0, 1.0])
+        e_r = q[5:] - sign * past[:5]
+        e_l = q[:5] - sign * past[5:]
+        err = jp.sum(w * (jp.square(e_r) + jp.square(e_l)))
+        valid = (info['stepping'] > 0.5) & (info['hist_len'] >= k)
+        return jp.where(valid, err, 0.0)
+
     # ------------------------------------------------------------------ reward
     def _get_reward(self, data, action, info, contact, done):
         rc = self._config.reward_config
@@ -369,6 +411,7 @@ class DodoStepInPlace(mjx_env.MjxEnv):
             'feet_distance': jp.clip(self._config.min_feet_distance - lateral, 0.0, 0.1),
             'alive': jp.array(1.0),
             'termination': done.astype(jp.float32),
+            'symmetry': self._symmetry_error(q - self._default_pose, info),
         }
 
     def sample_command(self, rng, stepping):

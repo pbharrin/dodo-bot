@@ -101,6 +101,25 @@ class EnvTest(unittest.TestCase):
         self.assertAlmostEqual(zero, dodo_env.WALK_OVERRIDES['zero_command_probability'], delta=0.03)
         self.assertTrue(-0.1 <= cmd[:, 0].min() and cmd[:, 0].max() <= 0.3)
 
+    def test_symmetry_error(self):
+        """Zero for a perfectly mirrored half-cycle-shifted gait, positive otherwise."""
+        s = RESET(jax.random.PRNGKey(5))
+        info = dict(s.info, stepping=jp.array(1.0), gait_freq=jp.array(1.25),
+                    command=jp.zeros(3), hist_len=jp.array(dodo_env.HIST_LEN))
+        k = int(ENV.half_cycle_steps(info['gait_freq']))
+        self.assertEqual(k, 20)
+        left_now = jp.array([0.1, 0.05, 0.3, -0.2, 0.1])
+        left_past = jp.array([-0.05, 0.02, -0.1, 0.1, 0.05])
+        sign = jp.array(dodo_env.MIRROR_SIGN)
+        q = jp.concatenate([left_now, sign * left_past])        # right now = M left(t-k)
+        past = jp.concatenate([left_past, sign * left_now])     # right(t-k) = M left now
+        info['q_hist'] = jp.zeros((dodo_env.HIST_LEN, 10)).at[k - 1].set(past)
+        self.assertAlmostEqual(float(ENV._symmetry_error(q, info)), 0.0, places=6)
+        q_bad = q.at[9].add(0.2)                                 # right ankle off by 0.2 rad
+        self.assertAlmostEqual(float(ENV._symmetry_error(q_bad, info)), 0.04, places=5)
+        info['stepping'] = jp.array(0.0)
+        self.assertEqual(float(ENV._symmetry_error(q_bad, info)), 0.0)
+
     def test_domain_randomization_batches(self):
         keys = jax.random.split(jax.random.PRNGKey(3), 4)
         model, in_axes = dodo_env.domain_randomize(ENV.mjx_model, keys)

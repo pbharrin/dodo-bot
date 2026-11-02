@@ -17,7 +17,8 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 
 - **CPU-validated (JAX backend, Apple M2):** all tests pass, the full train → save → evaluate → render pipeline runs, and the zero-action robot stands for 4 s. See "Validation" below for a short CPU learning-signal run.
 - **GPU-validated (MJX-Warp, g5.xlarge A10G, 2026-11-02):** all 6 tests (the 7th, a config check, was added afterwards) pass with `DODO_TEST_IMPL=warp`. A 10M-step trial ran at about 35k steps/s. Eval: 100% survival over 20 s with pushes in all 64 episodes, but stepping contact match 0.61 (the never-lift baseline is 0.60) and peak foot height about 1 cm. It learned to stand, not to step.
-- **Stage 1 trained (2026-11-02):** 150M steps on the g5.xlarge in 41 min. The policy stands and steps in place with 4 cm foot clearance and survives every evaluation episode with pushes. See "Stage 1 result" below. Not yet checked: C MuJoCo replay, rope compliance, measured actuator limits. No walking yet.
+- **Stage 1 trained (2026-11-02):** 150M steps on the g5.xlarge in 41 min. The policy stands and steps in place with 4 cm foot clearance and survives every evaluation episode with pushes. See "Stage 1 result" below. Not yet checked: C MuJoCo replay, rope compliance, measured actuator limits.
+- **Stage 2 trained (2026-11-02):** `stage2_walk` walks, turns and sidesteps on command with 100% survival with pushes, but with a favoured-leg (asymmetric) gait. A symmetry reward has been added for a fine-tuning run (`stage2_sym`), which hasn't been trained yet. See "Stage 2: walking" below.
 
 ## Stage 1 result (2026-11-02)
 
@@ -65,7 +66,7 @@ Findings:
 
 Hardware implication for milestone 2: an actuator module that holds about 2.5 Nm continuous and about 9–10 Nm for short bursts covers this policy, with the masses currently estimated in the model. If the bench shows less, retrain with the measured limit; the policy will trade gait aggressiveness and push recovery for it.
 
-## Stage 2: walking (set up, not yet trained)
+## Stage 2: walking
 
 The robot follows a base-velocity command: forward/back speed, sideways speed and yaw rate in the body frame, resampled every 10 s. `--task walk` applies `dodo_env.WALK_OVERRIDES`:
 
@@ -77,7 +78,7 @@ The robot follows a base-velocity command: forward/back speed, sideways speed an
 | `zero_command_probability` (stepping segments told to step in place) | — | 0.2 |
 | `stand_probability` | 0.25 | 0.15 |
 
-Stand episodes always get a zero command. The speed ranges are ESTIMATES: 0.3 m/s is a slow walk for a 0.33 m leg (Froude number about 0.03). Rewards, gait clock, randomization and pushes are unchanged from stage 1.
+Stand episodes always get a zero command. The speed ranges are ESTIMATES: 0.3 m/s is a slow walk for a 0.33 m leg (Froude number about 0.03). Gait clock, randomization and pushes are unchanged from stage 1. Since `stage2_walk` was trained, `WALK_OVERRIDES` also includes the symmetry reward (`reward_config.scales.symmetry=-4.0`; see "Left/right symmetry" below).
 
 Run on the GPU machine, starting from the stage-1 policy:
 
@@ -86,7 +87,7 @@ python simulation/training/train_ppo.py --run-name stage2_walk --task walk \
     --warm-start simulation/results/local/train/stage1_v5 2>&1 | tee stage2.log
 ```
 
-**Why `--warm-start` and not `--restore`:** stage 1 only ever saw a zero command, so its observation normalizer stores a std of 1e-6 for the command inputs. Restoring it unchanged would feed a 0.3 m/s command to the network as about 300,000. Because the normalizer averages over all 150M past steps, it would take a long time to correct. `warm_start.py` sets the command normalization to the stage-2 command distribution and zeroes the first-layer weights on the command inputs. Those weights never got any gradient in stage 1. The warm-started policy therefore starts out acting exactly like the stage-1 policy, whatever the command, and learns to use the command from there. (Checked: identical actions for zero and non-zero commands; the first eval of a smoke run already has stepping contact match 0.82, against 0.52 from scratch.) Use `--restore` only to resume a run of the same task.
+**Why `--warm-start` and not `--restore`:** stage 1 only ever saw a zero command, so its observation normalizer stores a std of 1e-6 for the command inputs. Restoring it unchanged would feed a 0.3 m/s command to the network as about 300,000. Because the normalizer averages over all 150M past steps, it would take a long time to correct. `warm_start.py` sets the command normalization to the stage-2 command distribution and zeroes the first-layer weights on the command inputs. Those weights never got any gradient in stage 1. The warm-started policy therefore starts out acting exactly like the stage-1 policy, whatever the command, and learns to use the command from there. (Checked: identical actions for zero and non-zero commands; the first eval of a smoke run already has stepping contact match 0.82, against 0.52 from scratch.) Only inputs that never varied in the source run are adapted. Warm-starting from a run that already saw commands, such as `stage2_walk`, keeps the policy exactly as trained (the script prints `adapted command inputs [False, False, False]`). Use `--restore` only to resume a run of the same task with the same rewards.
 
 What to look for in `eval.json` (now also reported by `evaluate.py` for any run):
 
@@ -95,6 +96,60 @@ What to look for in `eval.json` (now also reported by `evaluate.py` for any run)
 - Survival, contact match and the torque tables as in stage 1. Faster walking may raise knee and hip torque.
 
 If it learns to stand or shuffle instead of walking, the usual fixes are a larger `tracking_lin_vel` scale or a narrower speed range to start, e.g. `--env-override lin_vel_x=[0,0.15]`.
+
+### Stage 2 result: `stage2_walk` (2026-11-02)
+
+150M steps, warm-started from `stage1_v5`, MJX-Warp on the g5.xlarge (about 40 min), no symmetry reward. GPU evaluation at the end of training: 64 episodes of 20 s with noise, pushes and action delay.
+
+| | Stepping (52 episodes) | Standing (12 episodes) |
+| --- | ---: | ---: |
+| Survival over 20 s | 100% | 100% |
+| Commanded / actual mean speed while moving | 0.146 / 0.132 m/s | — |
+| Speed error while moving (ignoring the command would be about 0.15) | 0.067 m/s | — |
+| Yaw-rate error while moving (commands up to ±0.5 rad/s) | 0.058 rad/s | — |
+| Mean speed with zero command (includes step-to-step sway) | 0.052 m/s | 0.010 m/s |
+| Contact match | 0.84 | 1.00 |
+| Mean peak foot height | 4.2 cm | 0.9 cm |
+| Peak joint torque | 10.0 Nm | 5.3 Nm |
+
+Walking reaches about 90% of the commanded speed and tracks yaw well. The legs never cross in the videos.
+
+**Torque while walking** (steady stepping, N m, compared with stage 1): p95 and RMS barely change. Hip roll p99 rises to 6.3 Nm (stage 1: 5.7), about the static single-support moment. The limit is touched only in rare spikes: left ankle 0.01% of control steps, right hip roll once. RMS stays at or below 2.5 Nm on every joint. The actuator target is unchanged from stage 1: about 2.5 Nm continuous, about 6.5 Nm p99 and brief 10 Nm peaks.
+
+| Joint | Left p95 | Left p99 | Left max | Right p95 | Right p99 | Right max | RMS (L / R) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| hip yaw | 1.5 | 2.0 | 3.1 | 1.3 | 1.7 | 2.7 | 0.7 / 0.6 |
+| hip roll | 4.9 | 6.3 | 8.9 | 4.8 | 5.5 | 10.0 | 2.4 / 2.5 |
+| hip pitch | 1.7 | 2.3 | 4.6 | 1.7 | 2.2 | 3.4 | 0.8 / 0.9 |
+| knee pitch | 4.1 | 5.0 | 6.9 | 3.5 | 4.6 | 7.5 | 2.3 / 1.9 |
+| ankle pitch | 4.4 | 6.6 | 10.0 | 2.3 | 3.1 | 5.2 | 1.9 / 1.1 |
+
+### Left/right symmetry
+
+In the videos the left leg moves as if injured, without the right leg's range of motion. The model is exactly mirror-symmetric (checked: body positions, masses, inertias, joint axes, ranges and actuators; CoM on the midline), so this is a learned habit. Nothing in the stage-1 or stage-2 reward asked for symmetry, so the policy settled into a favoured-leg gait in stage 1, and stage 2 inherited it.
+
+`evaluate.py` now measures this. Stepping episodes, re-evaluated with `--impl jax` (ROM = p95 − p5 joint angle in rad; mirror error = RMS of `right(t) − M·left(t − T/2)` and vice versa, where `M` flips hip yaw and roll):
+
+| Joint | `stage1_v5` ROM L / R | `stage2_walk` ROM L / R | `stage2_walk` torque p95 L / R (N m) | `stage2_walk` mirror error (rad) |
+| --- | ---: | ---: | ---: | ---: |
+| hip yaw | 0.149 / 0.091 | 0.194 / 0.135 | 1.5 / 1.3 | 0.10 |
+| hip roll | 0.086 / 0.146 | 0.119 / 0.144 | 4.9 / 4.8 | 0.05 |
+| hip pitch | 0.202 / 0.177 | 0.252 / 0.262 | 1.7 / 1.7 | 0.10 |
+| knee pitch | 0.402 / 0.354 | 0.419 / 0.401 | 4.1 / 3.5 | 0.11 |
+| ankle pitch | 0.226 / 0.325 | 0.349 / 0.410 | 4.4 / 2.4 | 0.21 |
+
+The left ankle uses 15–30% less range than the right while carrying nearly twice the torque, and its mirror error (about 0.2 rad, 11°) is twice that of any other joint. The left hip roll also moves less.
+
+**Symmetry reward.** In a symmetric gait each leg repeats what the other did half a gait cycle earlier, mirrored. The env keeps the last 32 control steps of joint angles and, in stepping episodes, penalizes the squared error `|q_R(t) − M q_L(t − T/2)|² + |q_L(t) − M q_R(t − T/2)|²`, where T is taken from the gait clock. Pitch joints always count. Hip yaw and roll are weighted by `exp(−(v_y/0.03)² − (ω_z/0.1)²)`, because sideways and turning commands legitimately need asymmetric hip motion. Scale −4.0, about 5% of the per-step reward for the current gait. The penalty isn't in the critic's observation; the history is left out so the observation layout stays compatible with existing runs.
+
+Fine-tune from `stage2_walk` on the g5 (about 40 min):
+
+```bash
+python simulation/training/train_ppo.py --run-name stage2_sym --task walk \
+    --warm-start simulation/results/local/train/stage2_walk 2>&1 | tee stage2_sym.log
+```
+
+Check the symmetry table at the end of the log: ROM L/R ratios should move toward 1 and the ankle mirror error should drop well below 0.2 rad, without losing velocity tracking or survival. If the habit doesn't train out, retrain stages 1 and 2 from scratch with the symmetry reward on from the start (`--env-override reward_config.scales.symmetry=-4.0` for stage 1). A policy that is mirror-symmetric by construction is the stronger fallback.
 
 ## Validation (CPU, 2026-11-01)
 
@@ -208,6 +263,7 @@ If Warp reports contact or constraint overflow, raise `naconmax` (total contacts
 - `base_drift_m` (should stay small for in-place stepping)
 - `peak_joint_torque_Nm` (compare with the 10 Nm limit and, later, measured actuator limits)
 - `velocity_tracking`: command-tracking error while commanded to move and while commanded zero (stage 2).
+- `symmetry`: left vs. right range of motion, p95 torque and half-cycle mirror error while stepping (also printed as a table).
 - `torque`: per joint, the fraction of control steps at the torque limit (`saturated_frac`, |τ| ≥ 98% of limit) plus p50/p95/p99/max/RMS torque. It is split into `steady` and `push_recovery` (the 1 s after each push). Saturation during push recovery is acceptable. Saturation in `steady` stepping means the gait needs more torque than the actuator has. The same table prints to the console.
 
 Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`). Those results go to `eval_override.json`, so the training-time `eval.json` is kept.

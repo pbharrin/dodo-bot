@@ -15,6 +15,9 @@ adapt.
     so they are still random init; zeroing them means the warm-started policy
     initially behaves exactly like the stage-1 policy, whatever the command, and
     learns to use the command from there.
+Only command inputs that never varied in the source run (normalizer std below
+1e-3) are adapted. Warm-starting from a run that already saw commands (e.g.
+stage 2 -> stage 2 with a new reward) keeps them, and the policy, unchanged.
 Everything else (stepping, balance, push recovery, value function) is kept.
 """
 from pathlib import Path
@@ -49,7 +52,8 @@ def warm_start_params(params, env):
     """params = (normalizer, policy, value) from a previous run's params.pkl."""
     normalizer, policy, value = params
     mean_c, std_c = command_statistics(env)
-    varied = std_c > _MIN_STD
+    src_std = np.asarray(normalizer.std['state'])[COMMAND]
+    varied = (std_c > _MIN_STD) & (src_std < _MIN_STD)   # newly varying inputs only
     count = _count(normalizer.count)
 
     def fix_stats(key):
@@ -73,12 +77,13 @@ def warm_start_params(params, env):
     def zero_command_rows(net):
         net = jax.tree_util.tree_map(lambda x: x, net)       # copy
         kernel = np.array(net['params']['hidden_0']['kernel'])
-        kernel[COMMAND] = 0.0
+        kernel[np.arange(kernel.shape[0])[COMMAND][varied]] = 0.0
         net['params']['hidden_0']['kernel'] = jp.asarray(kernel)
         return net
 
     return normalizer, zero_command_rows(policy), zero_command_rows(value), {
         'command_mean': mean_c.tolist(), 'command_std': std_c.tolist(),
+        'adapted_command_inputs': varied.tolist(),
         'normalizer_count': count}
 
 

@@ -135,8 +135,8 @@ def main():
     restore_params, warm_info = None, None
     if args.warm_start:
         restore_params, warm_info = warm_start.load(args.warm_start, env)
-        print(f'Warm start from {args.warm_start}: command mean {warm_info["command_mean"]}, '
-              f'std {warm_info["command_std"]}')
+        print(f'Warm start from {args.warm_start}: adapted command inputs '
+              f'{warm_info["adapted_command_inputs"]} (vx, vy, yaw; False = kept as trained)')
 
     with open(logdir / 'config.json', 'w') as f:
         json.dump({'env': env._config.to_dict(), 'ppo': rl.to_dict(), 'model': str(env.xml_path),
