@@ -10,6 +10,7 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 | `train_ppo.py` | PPO training, checkpoints, final evaluation and videos |
 | `evaluate.py` | Reload a run, run deterministic rollouts, write `eval.json` and videos |
 | `render_backend.py` | Picks EGL for headless video, or falls back to no rendering if the GL libraries are missing |
+| `warm_start.py` | Starts stage 2 from the stage-1 policy, adapting the command inputs |
 | `test_dodo_env.py` | Pre-flight checks: model mass/geometry, MJX vs MuJoCo, passive standing, gait clock, randomization |
 
 ## Status
@@ -63,6 +64,37 @@ Findings:
 - **Drift of 20 cm in 20 s** while stepping: slow wandering rather than stepping on the spot. A candidate for a stronger base-velocity penalty in a later run.
 
 Hardware implication for milestone 2: an actuator module that holds about 2.5 Nm continuous and about 9–10 Nm for short bursts covers this policy, with the masses currently estimated in the model. If the bench shows less, retrain with the measured limit; the policy will trade gait aggressiveness and push recovery for it.
+
+## Stage 2: walking (set up, not yet trained)
+
+The robot follows a base-velocity command: forward/back speed, sideways speed and yaw rate in the body frame, resampled every 10 s. `--task walk` applies `dodo_env.WALK_OVERRIDES`:
+
+| Setting | Stage 1 | Stage 2 |
+| --- | --- | --- |
+| `lin_vel_x` (m/s) | 0 | −0.1 to 0.3 |
+| `lin_vel_y` (m/s) | 0 | −0.1 to 0.1 |
+| `ang_vel_yaw` (rad/s) | 0 | −0.5 to 0.5 |
+| `zero_command_probability` (stepping segments told to step in place) | — | 0.2 |
+| `stand_probability` | 0.25 | 0.15 |
+
+Stand episodes always get a zero command. The speed ranges are ESTIMATES: 0.3 m/s is a slow walk for a 0.33 m leg (Froude number about 0.03). Rewards, gait clock, randomization and pushes are unchanged from stage 1.
+
+Run on the GPU machine, starting from the stage-1 policy:
+
+```bash
+python simulation/training/train_ppo.py --run-name stage2_walk --task walk \
+    --warm-start simulation/results/local/train/stage1_v5 2>&1 | tee stage2.log
+```
+
+**Why `--warm-start` and not `--restore`:** stage 1 only ever saw a zero command, so its observation normalizer stores a std of 1e-6 for the command inputs. Restoring it unchanged would feed a 0.3 m/s command to the network as about 300,000. Because the normalizer averages over all 150M past steps, it would take a long time to correct. `warm_start.py` sets the command normalization to the stage-2 command distribution and zeroes the first-layer weights on the command inputs. Those weights never got any gradient in stage 1. The warm-started policy therefore starts out acting exactly like the stage-1 policy, whatever the command, and learns to use the command from there. (Checked: identical actions for zero and non-zero commands; the first eval of a smoke run already has stepping contact match 0.82, against 0.52 from scratch.) Use `--restore` only to resume a run of the same task.
+
+What to look for in `eval.json` (now also reported by `evaluate.py` for any run):
+
+- `velocity_tracking.moving`: `lin_vel_error_mps` and `yaw_rate_error_radps`, plus commanded vs. actual mean speed. A policy that ignores the command shows actual speed near 0 and an error close to the commanded speed.
+- `velocity_tracking.zero_command`: whether it still steps in place without wandering.
+- Survival, contact match and the torque tables as in stage 1. Faster walking may raise knee and hip torque.
+
+If it learns to stand or shuffle instead of walking, the usual fixes are a larger `tracking_lin_vel` scale or a narrower speed range to start, e.g. `--env-override lin_vel_x=[0,0.15]`.
 
 ## Validation (CPU, 2026-11-01)
 
@@ -152,9 +184,10 @@ Results go to `simulation/results/local/train/<run-name>/` (git-ignored): `progr
 
 Useful flags:
 
-- `--restore <run>/checkpoints/<step>` resumes a run.
+- `--task walk` trains stage 2 (see above). `--warm-start <run_dir>` starts from that run's `params.pkl` with the command inputs adapted.
+- `--restore <run>/checkpoints/<step>` resumes a run of the same task exactly.
 - `--no-randomization` is a debugging baseline. If the policy can't learn without randomization, the rewards are the problem, not robustness.
-- `--env-override KEY=JSON` changes env config without editing code, e.g. `stand_probability=0.0`, `push_config.enable=false`, `swing_height=[0.04,0.06]`, `lin_vel_x=[-0.2,0.3]` (stage 2: walking).
+- `--env-override KEY=JSON` changes env config without editing code, e.g. `stand_probability=0.0`, `push_config.enable=false`, `swing_height=[0.04,0.06]`, `lin_vel_x=[0,0.15]`.
 - `--impl jax` runs on CPU or without Warp. It works but is much slower.
 - `--env-override solver_iterations=4` (and `ls_iterations=…`) overrides the model's contact-solver iterations (default 2, from the XML). Warp prints `solver iterations limit reached - please increase iterations beyond 2` when a step doesn't converge. Occasional warnings are expected; if they appear constantly, raise it to 3–4 at some speed cost.
 
@@ -174,6 +207,7 @@ If Warp reports contact or constraint overflow, raise `naconmax` (total contacts
 - `mean_peak_foot_height_m` (target swing clearance 3–5 cm)
 - `base_drift_m` (should stay small for in-place stepping)
 - `peak_joint_torque_Nm` (compare with the 10 Nm limit and, later, measured actuator limits)
+- `velocity_tracking`: command-tracking error while commanded to move and while commanded zero (stage 2).
 - `torque`: per joint, the fraction of control steps at the torque limit (`saturated_frac`, |τ| ≥ 98% of limit) plus p50/p95/p99/max/RMS torque. It is split into `steady` and `push_recovery` (the 1 s after each push). Saturation during push recovery is acceptable. Saturation in `steady` stepping means the gait needs more torque than the actuator has. The same table prints to the console.
 
 Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`). Those results go to `eval_override.json`, so the training-time `eval.json` is kept.
@@ -192,5 +226,5 @@ Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`
 ## Next stages
 
 1. Stage 1 (this): stand and step in place, robust to pushes.
-2. Stage 2: widen `lin_vel_x` / `lin_vel_y` / `ang_vel_yaw` to walk forward slowly and turn, resuming from stage 1.
+2. Stage 2 (set up, see above): walk forward slowly, sidestep and turn, warm-started from stage 1.
 3. Before hardware: replay the policy in C MuJoCo (not MJX) with added latency and measured actuator models, then export the actor network for UNO Q inference. Keep joint ordering, units, gains, normalization statistics and action scaling identical.

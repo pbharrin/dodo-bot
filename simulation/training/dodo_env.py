@@ -38,6 +38,18 @@ FEET = ('left_foot', 'right_foot')
 NUM_JOINTS = 10
 
 
+# Stage 2: walk slowly forward/back, sidestep a little and turn, from the stage-1
+# policy (train_ppo.py --task walk --warm-start <stage-1 run>). ESTIMATE ranges:
+# 0.3 m/s is a slow walk for a 0.33 m leg (Froude number ~0.03).
+WALK_OVERRIDES = {
+    'lin_vel_x': [-0.1, 0.3],
+    'lin_vel_y': [-0.1, 0.1],
+    'ang_vel_yaw': [-0.5, 0.5],
+    'zero_command_probability': 0.2,
+    'stand_probability': 0.15,
+}
+
+
 def default_config() -> config_dict.ConfigDict:
     return config_dict.create(
         ctrl_dt=0.02,
@@ -59,6 +71,7 @@ def default_config() -> config_dict.ConfigDict:
         lin_vel_x=[0.0, 0.0],         # m/s; widen for walking (stage 2)
         lin_vel_y=[0.0, 0.0],
         ang_vel_yaw=[0.0, 0.0],
+        zero_command_probability=0.0, # stepping episodes/segments told to step in place (stage 2)
         command_resample_steps=500,
         base_height_target=0.40,      # torso origin height at home
         min_feet_distance=0.12,       # m between foot centres, lateral
@@ -200,7 +213,7 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         info = {
             'rng': rng,
             'step': 0,
-            'command': self.sample_command(kc),
+            'command': self.sample_command(kc, stepping),
             'stepping': stepping,
             'gait_freq': freq,
             'swing_height': jax.random.uniform(
@@ -256,7 +269,7 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         info['last_act'] = action
         info['rng'], kc = jax.random.split(info['rng'])
         resample = info['step'] >= cfg.command_resample_steps
-        info['command'] = jp.where(resample, self.sample_command(kc), info['command'])
+        info['command'] = jp.where(resample, self.sample_command(kc, info['stepping']), info['command'])
         info['step'] = jp.where(resample | done, 0, info['step'])
 
         stance, _ = self._gait(info)
@@ -358,14 +371,21 @@ class DodoStepInPlace(mjx_env.MjxEnv):
             'termination': done.astype(jp.float32),
         }
 
-    def sample_command(self, rng):
+    def sample_command(self, rng, stepping):
+        """Base velocity command [vx, vy, yaw rate] in the body frame.
+
+        Zero for stand episodes (they must stand still) and, with probability
+        zero_command_probability, for stepping segments (keeps step-in-place).
+        """
         c = self._config
-        k1, k2, k3 = jax.random.split(rng, 3)
-        return jp.hstack([
+        k1, k2, k3, k4 = jax.random.split(rng, 4)
+        cmd = jp.hstack([
             jax.random.uniform(k1, minval=c.lin_vel_x[0], maxval=c.lin_vel_x[1]),
             jax.random.uniform(k2, minval=c.lin_vel_y[0], maxval=c.lin_vel_y[1]),
             jax.random.uniform(k3, minval=c.ang_vel_yaw[0], maxval=c.ang_vel_yaw[1]),
         ])
+        moving = (stepping > 0.5) & (jax.random.uniform(k4) >= c.zero_command_probability)
+        return jp.where(moving, cmd, jp.zeros(3))
 
     # ------------------------------------------------------------------ accessors
     @property

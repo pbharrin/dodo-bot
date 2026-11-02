@@ -46,7 +46,10 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
                        match=jp.mean(stance == contact, axis=-1),
                        foot_z=s.data.site_xpos[:, feet, 2],
                        tau=jp.abs(s.data.actuator_force),              # (N, nu)
-                       pushed=jp.linalg.norm(s.info['push'], axis=-1) > 0)
+                       pushed=jp.linalg.norm(s.info['push'], axis=-1) > 0,
+                       command=s.info['command'],
+                       linvel=jax.vmap(lambda d: env._sensor(d, 'local_linvel'))(s.data),
+                       yaw_rate=jax.vmap(lambda d: env._sensor(d, 'gyro'))(s.data)[:, 2])
             return (s, k, alive), rec
         alive0 = jp.ones(num_episodes, dtype=bool)
         _, traj = jax.lax.scan(body, (state, key, alive0), None, length=episode_length)
@@ -67,10 +70,30 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
     end_xy = traj['qpos'][last, np.arange(num_episodes), :2]
     drift = np.linalg.norm(end_xy - start_xy, axis=-1)
 
+    cmd = traj['command']                                   # (T, N, 3)
+    lin_err = np.linalg.norm(cmd[..., :2] - traj['linvel'][..., :2], axis=-1)
+    yaw_err = np.abs(cmd[..., 2] - traj['yaw_rate'])
+    moving = np.any(cmd != 0, axis=-1)                       # (T, N) commanded to move
+
+    def tracking(mask):
+        sel = alive & mask[None, :]
+        out = {}
+        for name, m in (('moving', sel & moving), ('zero_command', sel & ~moving)):
+            if m.any():
+                out[name] = {
+                    'control_steps': int(m.sum()),
+                    'lin_vel_error_mps': float(lin_err[m].mean()),
+                    'yaw_rate_error_radps': float(yaw_err[m].mean()),
+                    'mean_cmd_speed_mps': float(np.linalg.norm(cmd[..., :2], axis=-1)[m].mean()),
+                    'mean_speed_mps': float(np.linalg.norm(traj['linvel'][..., :2], axis=-1)[m].mean()),
+                }
+        return out
+
     def grp(mask):
         if not mask.any():
             return None
         return {
+            'velocity_tracking': tracking(mask),
             'episodes': int(mask.sum()),
             'survival_rate': float(survived[mask].mean()),
             'mean_time_alive_s': float(steps_alive[mask].mean() * env.dt),
@@ -188,6 +211,20 @@ def load_policy(run_dir: Path, env):
     return ppo_networks.make_inference_fn(networks)(params, deterministic=True), cfg
 
 
+def saved_env_config(saved: dict):
+    """Current defaults overlaid with a run's saved env config (older runs lack newer keys)."""
+    cfg = dodo_env.default_config()
+
+    def flat(d, prefix=''):
+        for k, v in d.items():
+            if isinstance(v, dict):
+                yield from flat(v, f'{prefix}{k}.')
+            else:
+                yield f'{prefix}{k}', v
+    cfg.update_from_flattened_dict(dict(flat(saved)))
+    return cfg
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('run_dir', type=Path)
@@ -198,11 +235,12 @@ def main():
     args = ap.parse_args()
 
     cfg = json.loads((args.run_dir / 'config.json').read_text())
+    env_cfg = saved_env_config(cfg['env'])                   # the task exactly as trained
     overrides = {'impl': args.impl or cfg['env']['impl']}
     for item in args.env_override:
         k, v = item.split('=', 1)
         overrides[k] = json.loads(v)
-    env = dodo_env.DodoStepInPlace(config_overrides=overrides)
+    env = dodo_env.DodoStepInPlace(config=env_cfg, config_overrides=overrides)
     policy, _ = load_policy(args.run_dir, env)
     stats = evaluate(env, policy, cfg['ppo']['episode_length'], args.episodes, args.videos, args.run_dir)
     out = args.run_dir / ('eval.json' if not args.env_override else 'eval_override.json')

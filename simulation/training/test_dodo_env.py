@@ -90,6 +90,17 @@ class EnvTest(unittest.TestCase):
         self.assertEqual(dodo_env.DodoStepInPlace(config_overrides={'impl': IMPL, 'naconmax': 64})
                          .mj_model.opt.iterations, 2)
 
+    def test_walk_commands(self):
+        env = dodo_env.DodoStepInPlace(config_overrides={
+            'impl': IMPL, 'naconmax': 64, **dodo_env.WALK_OVERRIDES})
+        keys = jax.random.split(jax.random.PRNGKey(4), 2000)
+        sample = jax.jit(jax.vmap(env.sample_command, in_axes=(0, None)))
+        self.assertEqual(float(jp.abs(sample(keys, jp.array(0.0))).max()), 0.0)  # standing: no command
+        cmd = np.asarray(sample(keys, jp.array(1.0)))
+        zero = np.all(cmd == 0, axis=1).mean()
+        self.assertAlmostEqual(zero, dodo_env.WALK_OVERRIDES['zero_command_probability'], delta=0.03)
+        self.assertTrue(-0.1 <= cmd[:, 0].min() and cmd[:, 0].max() <= 0.3)
+
     def test_domain_randomization_batches(self):
         keys = jax.random.split(jax.random.PRNGKey(3), 4)
         model, in_axes = dodo_env.domain_randomize(ENV.mjx_model, keys)

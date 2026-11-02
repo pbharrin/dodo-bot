@@ -1,7 +1,11 @@
 """Train the Dodo v5 stand / step-in-place policy with Brax PPO on MJX-Warp.
 
-GPU (g6e.xlarge or similar):
+GPU (g5/g6e.xlarge or similar):
     python simulation/training/train_ppo.py --run-name stage1
+
+Stage 2 (walking), starting from the stage-1 policy:
+    python simulation/training/train_ppo.py --run-name stage2_walk --task walk \
+        --warm-start simulation/results/local/train/stage1_v5
 
 CPU smoke test (tiny, minutes; checks the pipeline end to end, not learning):
     python simulation/training/train_ppo.py --impl jax --smoke
@@ -40,6 +44,7 @@ from mujoco_playground import wrapper  # noqa: E402
 
 import dodo_env  # noqa: E402
 import evaluate  # noqa: E402
+import warm_start  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -82,7 +87,14 @@ def main():
     ap.add_argument('--num-evals', type=int)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--no-randomization', action='store_true', help='disable domain randomization')
-    ap.add_argument('--restore', type=Path, help='checkpoint directory to resume from')
+    ap.add_argument('--task', choices=['step', 'walk'], default='step',
+                    help='step: stage 1 stand/step in place; walk: stage 2 velocity commands '
+                         '(dodo_env.WALK_OVERRIDES). --env-override is applied on top.')
+    ap.add_argument('--restore', type=Path,
+                    help='checkpoint directory to resume the SAME task from (exact Brax restore)')
+    ap.add_argument('--warm-start', type=Path, metavar='RUN_DIR',
+                    help='start from a previous stage\'s params.pkl, adapting the command '
+                         'inputs (see warm_start.py); use for stage 1 -> stage 2')
     ap.add_argument('--env-override', action='append', default=[], metavar='KEY=JSON',
                     help='env config override, e.g. stand_probability=0.5 or lin_vel_x=[0,0.3]')
     ap.add_argument('--num-videos', type=int, default=2)
@@ -97,7 +109,11 @@ def main():
     logdir = REPO / 'simulation' / 'results' / 'local' / 'train' / run_name
     logdir.mkdir(parents=True, exist_ok=True)
 
+    if args.restore and args.warm_start:
+        ap.error('use either --restore or --warm-start, not both')
     overrides = {'impl': args.impl}
+    if args.task == 'walk':
+        overrides.update(dodo_env.WALK_OVERRIDES)
     for item in args.env_override:
         key, val = item.split('=', 1)
         overrides[key] = json.loads(val)
@@ -116,9 +132,19 @@ def main():
     env = dodo_env.DodoStepInPlace(config=env_cfg, config_overrides=overrides)
     eval_env = dodo_env.DodoStepInPlace(config=dodo_env.default_config(), config_overrides=overrides)
 
+    restore_params, warm_info = None, None
+    if args.warm_start:
+        restore_params, warm_info = warm_start.load(args.warm_start, env)
+        print(f'Warm start from {args.warm_start}: command mean {warm_info["command_mean"]}, '
+              f'std {warm_info["command_std"]}')
+
     with open(logdir / 'config.json', 'w') as f:
         json.dump({'env': env._config.to_dict(), 'ppo': rl.to_dict(), 'model': str(env.xml_path),
-                   'randomization': not args.no_randomization, 'jax_devices': [str(d) for d in jax.devices()]},
+                   'task': args.task, 'randomization': not args.no_randomization,
+                   'restore': str(args.restore) if args.restore else None,
+                   'warm_start': str(args.warm_start) if args.warm_start else None,
+                   'warm_start_info': warm_info,
+                   'jax_devices': [str(d) for d in jax.devices()]},
                   f, indent=2, default=str)
     print(f'Run dir: {logdir}\nDevices: {jax.devices()}\nimpl={args.impl}  envs={rl.num_envs}  steps={rl.num_timesteps:,}')
 
@@ -133,6 +159,7 @@ def main():
         seed=args.seed,
         save_checkpoint_path=logdir / 'checkpoints',
         restore_checkpoint_path=args.restore,
+        restore_params=restore_params,
     )
 
     t0 = time.monotonic()
