@@ -197,7 +197,7 @@ class WholeBodyQP:
         self.r, self.mu, self.margin = r, mu, margin
         self.solvers = {}
 
-    def solve(self, d, active, qref, cref, foot_refs, force_share=None, static=False, force_weight=.02, contact_soft_weight=None):
+    def solve(self, d, active, qref, cref, foot_refs, force_share=None, static=False, force_weight=.02, contact_soft_weight=None, force_contact_caps=None):
         r = self.r; m = r.m; nv = m.nv; nu = m.nu
         n = nv+nu+12*len(active)
         jc, jt, feet = r.kinematics(d)
@@ -229,7 +229,15 @@ class WholeBodyQP:
                 jp = np.zeros((3, nv)); mujoco.mj_jac(m, d, jp, None, p, bid)
                 dyn[:, f:f+3] = -jp.T
                 Fz[s][f+2] = 1.
-                row = np.zeros(n); row[f+2] = 1.; bound(row, 0., 3*r.weight if j in active[s] else 0., f'{s}_corner{j}_normal_force')
+                # Optional measured-contact handoff: the pivot acceleration task
+                # can coexist with forces at other corners while the sole is flat.
+                # Existing callers retain exactly the previous force bounds.
+                cap = 3*r.weight if j in active[s] else 0.
+                if force_contact_caps is not None and s in force_contact_caps:
+                    cap = float(force_contact_caps[s][j])
+                    if not np.isfinite(cap) or cap < 0. or cap > 3*r.weight:
+                        raise ValueError('Invalid corner force cap')
+                row = np.zeros(n); row[f+2] = 1.; bound(row, 0., cap, f'{s}_corner{j}_normal_force')
                 for a, b in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
                     row = np.zeros(n); row[f:f+3] = [a, b, -self.mu]
                     bound(row, -np.inf, 0., f'{s}_corner{j}_friction')
