@@ -20,7 +20,7 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 - **GPU-validated (MJX-Warp, g5.xlarge A10G, 2026-11-02):** all 6 tests (the 7th, a config check, was added afterwards) pass with `DODO_TEST_IMPL=warp`. A 10M-step trial ran at about 35k steps/s. Eval: 100% survival over 20 s with pushes in all 64 episodes, but stepping contact match 0.61 (the never-lift baseline is 0.60) and peak foot height about 1 cm. It learned to stand, not to step.
 - **Stage 1 trained (2026-11-02):** 150M steps on the g5.xlarge in 41 min. The policy stands and steps in place with 4 cm foot clearance and survives every evaluation episode with pushes. See "Stage 1 result" below. Not yet checked: C MuJoCo replay, rope compliance, measured actuator limits.
 - **Stage 2 trained (2026-11-02):** `stage2_walk` walks, turns and sidesteps on command with 100% survival with pushes, but with a favoured-leg gait. **`stage2_sym`** (fine-tuned with a symmetry reward) fixes that and is the current best policy. See "Stage 2: walking" below.
-- **Stage 2b set up (2026-11-02):** action low-pass filter to remove servo torque spikes; ready to train. See "Stage 2b".
+- **Stage 2b trained (2026-11-02): `stage2_smooth` is the current best policy.** A 6 Hz action low-pass filter cuts knee/ankle torque saturation about 40× with equal or better walking. It falls once in 24 replay episodes at 40 ms latency (`stage2_sym`: none). See "Stage 2b".
 - **C MuJoCo replay passed (2026-11-02):** `stage2_sym` keeps 100% survival in plain C MuJoCo with the full solver, a 2 ms timestep, up to 40 ms latency and torque limits down to 6 Nm. See "C MuJoCo replay check".
 - **Torque measurement corrected (2026-11-02):** the stage-1 and `stage2_walk` torque tables below sampled torque at the end of each 20 ms control step and miss brief PD-servo spikes right after each new target. p95 and RMS there are fine; their max / saturation numbers understate the peaks. See "Torque spikes from position-target steps".
 
@@ -155,7 +155,7 @@ python simulation/training/train_ppo.py --run-name stage2_sym --task walk \
 
 If a habit like this doesn't train out, retrain stages 1 and 2 from scratch with the symmetry reward on from the start (`--env-override reward_config.scales.symmetry=-4.0` for stage 1). A policy that is mirror-symmetric by construction is the stronger fallback.
 
-### Stage 2 result: `stage2_sym` (2026-11-02), current best
+### Stage 2 result: `stage2_sym` (2026-11-02)
 
 150M steps warm-started from `stage2_walk` with the symmetry reward (scale −4.0). Evaluated on the Mac with `evaluate.py --impl jax` (64 episodes). In the videos the left leg no longer looks injured.
 
@@ -230,7 +230,7 @@ Implications:
 - **Capstan rope:** each spike is a load step on the rope: 10 Nm on a 40 mm radius is a 250 N tension change within milliseconds. Even if the motor can deliver it, the rope, anchors and tensioner would see it on most steps.
 - **Fix being trained:** a low-pass action filter (next section). Linear interpolation of targets across the 20 ms was the alternative; the filter was chosen because it's the more common approach and needs nothing from the XDrive beyond 50 Hz position targets.
 
-## Stage 2b: action low-pass filter (set up 2026-11-02, not yet trained)
+## Stage 2b: action low-pass filter
 
 A first-order low-pass filter now sits between the policy and the joint targets: `a_f += α·(a − a_f)` every 20 ms, then `q* = q_home + 0.5 rad × a_f`. With `action_filter_hz = 6` Hz, α = 1 − exp(−2π·6·0.02) ≈ 0.53, so each target step is about half the raw action step. That leaves about 4× margin over the 1.0–1.5 Hz gait (about 14° phase lag at 1.5 Hz). The `action_rate` penalty doubles from −0.05 to −0.1 at the same time.
 
@@ -257,6 +257,54 @@ Zero-shot check (CPU, C MuJoCo replay, the same 8 stepping episodes): `stage2_sy
 | 40 ms latency | 6 Hz | 100% | 0.76 | 0.125 | 0.124 | 8.0 | 0.00% |
 
 The filter removes nearly all saturation even before retraining. Tracking and gait timing get worse because the policy doesn't expect the lag; the fine-tune should recover them. Success criteria for `stage2_smooth`: tracking and contact match back to `stage2_sym` levels, knee/ankle peak p99 well under 10 Nm, and 40 ms latency still survivable.
+
+### Stage 2b result: `stage2_smooth` (2026-11-02), current best
+
+150M steps warm-started from `stage2_sym` with `--task walk_smooth`, on the g5. Evaluated with `evaluate.py` (64 episodes) and `replay_mujoco.py` (24 episodes).
+
+Torque, steady stepping, peak over substeps, `stage2_sym` → `stage2_smooth` (N m):
+
+| Joint (L / R) | Peak p95 | Peak p99 | Saturated (peak) | p99 end of step | RMS |
+| --- | --- | --- | --- | --- | --- |
+| knee pitch | 6.7 / 7.7 → **5.3 / 5.8** | 8.8 / 10.0 → **6.3 / 7.3** | 0.19% / 1.93% → **0% / 0%** | 4.6 / 4.2 → 4.0 / 4.4 | 2.2 / 1.9 → 2.0 / 2.0 |
+| ankle pitch | 6.2 / 7.4 → **4.9 / 5.8** | 10.0 / 10.0 → **8.3 / 7.5** | 2.30% / 1.62% → **0.11% / 0.03%** | 6.5 / 3.8 → 5.6 / 4.3 | 1.8 / 1.1 → 1.6 / 1.2 |
+| hip roll | 5.0 / 5.4 → 4.8 / 5.5 | 6.3 / 6.4 → 5.7 / 6.4 | 0% / 0.02% → 0% / 0% | 6.0 / 6.1 → 5.6 / 6.2 | 2.5 / 2.5 → 2.3 / 2.5 |
+| hip pitch | 2.3 / 2.7 → 2.5 / 2.1 | 3.4 / 3.8 → 3.5 / 2.6 | 0% | 2.3 / 2.2 → 2.4 / 2.2 | 0.8 / 0.9 → 0.8 / 0.9 |
+| hip yaw | 1.9 / 1.6 → 1.8 / 1.5 | 3.8 / 2.4 → 3.5 / 2.1 | 0% | 2.0 / 1.6 → 1.9 / 1.7 | 0.7 / 0.6 → 0.6 / 0.5 |
+
+Single control steps still reach 10 Nm on the knees, ankles and right hip roll, but rarely enough for the drive's current limit to clip them. Sustained loads (end of step, RMS) are unchanged: hip roll at about 6.4 Nm p99 is now the most loaded joint, and that is single-support load the filter can't remove. The left/right ankle end-of-step torque gap narrowed (6.5 / 3.8 → 5.6 / 4.3 Nm).
+
+Walking, `evaluate.py`, 64 episodes, all survived:
+
+| | `stage2_sym` | `stage2_smooth` |
+| --- | ---: | ---: |
+| Speed error, m/s | 0.070 | **0.066** |
+| Yaw-rate error, rad/s | 0.062 | **0.052** |
+| Commanded / actual speed, m/s | 0.151 / 0.147 | 0.151 / 0.148 |
+| Stepping contact match | 0.836 | 0.818 |
+| Peak foot height, cm | 4.3 | 4.4 |
+| Hip yaw ROM ratio L/R | 1.50 | 1.28 |
+| Ankle mirror error, all stepping, rad | 0.048 | 0.045 |
+
+The fine-tune recovered all the tracking the filter cost the untrained policy (0.120 m/s in the zero-shot check) and then improved on `stage2_sym`. Contact match is about 2% lower, consistent with feet landing slightly later than the gait clock.
+
+C MuJoCo replay, the same 24 episodes as for `stage2_sym` (stage2_sym values in brackets):
+
+| Condition | Survival | Contact match | Speed err (m/s) | Yaw err (rad/s) | Peak p99 (Nm) | Saturated |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| as trained | 100% | 0.82 (0.84) | 0.065 (0.065) | 0.048 (0.052) | 8.2 (10.0) | 0.01% (0.57%) |
+| full solver | 100% | 0.82 (0.84) | 0.065 (0.065) | 0.048 (0.052) | 8.2 (10.0) | 0.01% (0.57%) |
+| full solver, 2 ms | 100% | 0.82 (0.84) | 0.065 (0.065) | 0.049 (0.054) | 8.2 (10.0) | 0.01% (0.52%) |
+| latency 10 ms | 100% | 0.81 (0.82) | 0.067 (0.067) | 0.048 (0.052) | 8.4 (10.0) | 0.01% (0.58%) |
+| latency 20 ms | 100% | 0.81 (0.83) | 0.068 (0.069) | 0.056 (0.059) | 8.7 (10.0) | 0.01% (0.59%) |
+| **latency 40 ms** | **96% (1 fall)** (100%) | 0.80 (0.82) | 0.079 (0.078) | 0.087 (0.086) | 9.3 (10.0) | 0.05% (0.56%) |
+| torque 8 Nm | 100% | 0.82 (0.84) | 0.065 (0.065) | 0.048 (0.052) | 8.0 (8.0) | 0.17% (1.44%) |
+| torque 6 Nm | 100% | 0.82 (0.84) | 0.065 (0.065) | 0.048 (0.053) | 6.0 (6.0) | 1.90% (3.82%) |
+| realistic (2 ms, 10 ms latency, 8 Nm) | 100% | 0.81 (0.82) | 0.067 (0.067) | 0.047 (0.052) | 8.0 (8.0) | 0.21% (1.54%) |
+
+- **Better wherever latency is 20 ms or less**, including the "realistic" condition, where saturation drops from 1.54% to 0.21%.
+- **One fall at 40 ms.** The filter itself adds lag: its low-frequency group delay is (1 − α) / α × 20 ms ≈ 18 ms. So 40 ms of link latency means about 58 ms in total, beyond anything seen in training (a random 0 or 20 ms delay). One fall in 24 episodes is a small sample, but it's the first fall in any replay. The latency budget therefore matters more now: **keep the UNO Q → CAN → XDrive loop at or under 20 ms.**
+- **If hardware latency turns out higher**, fine-tune with randomized latency up to 40 ms, in 4 ms substeps rather than whole 20 ms control steps.
 
 ## Validation (CPU, 2026-11-01)
 
@@ -390,4 +438,4 @@ Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`
 
 1. Stage 1 (this): stand and step in place, robust to pushes.
 2. Stage 2 (set up, see above): walk forward slowly, sidestep and turn, warm-started from stage 1.
-3. Before hardware: the C MuJoCo replay is done (above). Target smoothing is set up as stage 2b (above). Next: add measured actuator and rope models once bench data exists and replay again, then export the actor network for UNO Q inference. Keep joint ordering, units, gains, normalization statistics and action scaling identical.
+3. Before hardware: the C MuJoCo replay is done (above). Target smoothing is done (stage 2b, `stage2_smooth`). Next: measure the real UNO Q → CAN → XDrive latency (target ≤ 20 ms; see stage 2b), add measured actuator and rope models once bench data exists and replay again, then export the actor network for UNO Q inference. Keep joint ordering, units, gains, normalization statistics and action scaling identical.
