@@ -128,5 +128,27 @@ class EnvTest(unittest.TestCase):
         self.assertEqual(in_axes.body_mass, 0)
 
 
+
+class ReplayTest(unittest.TestCase):
+    def test_replay_obs_matches_env(self):
+        """replay_mujoco rebuilds the actor observation exactly as the env does."""
+        import replay_mujoco
+        env = dodo_env.DodoStepInPlace(config_overrides={
+            'impl': IMPL, 'naconmax': 64, 'noise_config.level': 0.0, **dodo_env.WALK_OVERRIDES})
+        # At reset both sides come straight from a forward pass. (After mj_step, sensors
+        # and site frames lag qpos by one substep, identically in MJX and C MuJoCo.)
+        s = jax.jit(env.reset)(jax.random.PRNGKey(7))
+        self.assertTrue(float(s.info['stepping']) == 1.0 and float(jp.abs(s.info['command']).sum()) > 0)
+        r = replay_mujoco.Replay(env, policy=lambda obs, key: (jp.zeros(10), {}))
+        m = env.mj_model
+        d = mujoco.MjData(m)
+        d.qpos[:], d.qvel[:] = np.asarray(s.data.qpos), np.asarray(s.data.qvel)
+        mujoco.mj_forward(m, d)
+        info = {k: np.asarray(v) for k, v in s.info.items() if k != 'rng'}
+        info['stepping'] = float(info['stepping'])
+        got = r.obs(d, info, np.random.default_rng(0))
+        np.testing.assert_allclose(got, np.asarray(s.obs['state']), atol=1e-4)
+
+
 if __name__ == '__main__':
     unittest.main()

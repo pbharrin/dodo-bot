@@ -235,6 +235,7 @@ class DodoStepInPlace(mjx_env.MjxEnv):
             'last_act': jp.zeros(NUM_JOINTS),
             'motor_targets': jp.zeros(NUM_JOINTS),
             'q_hist': jp.zeros((HIST_LEN, NUM_JOINTS)),   # [0] = previous control step
+            'peak_tau': jp.zeros(NUM_JOINTS),             # max |torque| over the last step's substeps
             'hist_len': 0,
             'push': jp.zeros(2),
             'push_step': 0,
@@ -264,7 +265,7 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         # One control-step latency on some episodes.
         applied = jp.where(info['delay'] > 0.5, info['last_act'], action)
         motor_targets = self._default_pose + applied * cfg.action_scale
-        data = mjx_env.step(self._mjx_model, data, motor_targets, self.n_substeps)
+        data, info['peak_tau'] = self._substeps(data, motor_targets)
         info['motor_targets'] = motor_targets
 
         contact = self._contact(data)
@@ -295,6 +296,19 @@ class DodoStepInPlace(mjx_env.MjxEnv):
 
         obs = self._get_obs(data, info)
         return state.replace(data=data, obs=obs, reward=reward, done=done.astype(reward.dtype))
+
+    def _substeps(self, data, ctrl):
+        """mjx_env.step, plus the peak |actuator force| over the substeps.
+
+        The PD servo's largest torque comes right after a new target (kp * jump),
+        in the first substep; sampling only the end of the control step misses it.
+        """
+        def single(carry, _):
+            d, peak = carry
+            d = mjx.step(self._mjx_model, d.replace(ctrl=ctrl))
+            return (d, jp.maximum(peak, jp.abs(d.actuator_force))), None
+        (data, peak), _ = jax.lax.scan(single, (data, jp.zeros(NUM_JOINTS)), (), self.n_substeps)
+        return data, peak
 
     def _get_termination(self, data):
         up = data.site_xmat[self._imu_site][2, 2]       # cos(tilt)

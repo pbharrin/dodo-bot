@@ -45,7 +45,8 @@ def evaluate(env, policy, episode_length, num_episodes, num_videos, outdir, seed
             rec = dict(qpos=s.data.qpos, alive=alive, stepping=s.info['stepping'],
                        match=jp.mean(stance == contact, axis=-1),
                        foot_z=s.data.site_xpos[:, feet, 2],
-                       tau=jp.abs(s.data.actuator_force),              # (N, nu)
+                       tau=s.info['peak_tau'],                         # (N, nu), peak over substeps
+                       tau_end=jp.abs(s.data.actuator_force),          # (N, nu), end of control step
                        pushed=jp.linalg.norm(s.info['push'], axis=-1) > 0,
                        command=s.info['command'],
                        gait_freq=s.info['gait_freq'],
@@ -134,7 +135,8 @@ def torque_stats(env, traj, alive, stepping):
     m = env.mj_model
     names = [m.actuator(i).name for i in range(m.nu)]
     limit = np.abs(m.actuator_forcerange[:, 1])
-    tau = traj['tau']                                        # (T, N, nu)
+    tau = traj['tau']                                        # (T, N, nu) peak over substeps
+    tau_end = traj['tau_end']                                # (T, N, nu) end of control step
     T = tau.shape[0]
     t = np.arange(T)[:, None]
     last_push = np.maximum.accumulate(np.where(traj['pushed'], t, -10**9), axis=0)
@@ -144,6 +146,7 @@ def torque_stats(env, traj, alive, stepping):
         if not mask.any():
             return None
         x = tau[mask]                                        # (K, nu)
+        x_end = tau_end[mask]
         sat = x >= SATURATION_FRAC * limit
         return {
             'control_steps': int(mask.sum()),
@@ -153,7 +156,8 @@ def torque_stats(env, traj, alive, stepping):
                 'p95_Nm': round(float(np.percentile(x[:, j], 95)), 2),
                 'p99_Nm': round(float(np.percentile(x[:, j], 99)), 2),
                 'max_Nm': round(float(x[:, j].max()), 2),
-                'rms_Nm': round(float(np.sqrt(np.mean(x[:, j] ** 2))), 2),
+                'p99_end_of_step_Nm': round(float(np.percentile(x_end[:, j], 99)), 2),
+                'rms_Nm': round(float(np.sqrt(np.mean(x_end[:, j] ** 2))), 2),   # heating: time average
             } for j, n in enumerate(names)},
         }
 
@@ -254,12 +258,13 @@ def print_torque_table(ts):
             tab = ts[mode][phase]
             if tab is None:
                 continue
-            print(f'\nTorque, {mode} / {phase} ({tab["control_steps"]} control steps, '
-                  f'saturated = |tau| >= {ts["saturation_threshold"]:.0%} of limit)')
-            print(f'  {"joint":<20}{"sat %":>7}{"p50":>7}{"p95":>7}{"p99":>7}{"max":>7}{"rms":>7}')
+            print(f'\nTorque, {mode} / {phase} ({tab["control_steps"]} control steps; sat/p50-p99/max = peak '
+                  f'over substeps, saturated = >= {ts["saturation_threshold"]:.0%} of limit; '
+                  f'p99 end = end of control step; rms = time average)')
+            print(f'  {"joint":<20}{"sat %":>7}{"p50":>7}{"p95":>7}{"p99":>7}{"max":>7}{"p99 end":>9}{"rms":>7}')
             for n, r in tab['joints'].items():
                 print(f'  {n:<20}{100 * r["saturated_frac"]:>7.2f}{r["p50_Nm"]:>7.2f}{r["p95_Nm"]:>7.2f}'
-                      f'{r["p99_Nm"]:>7.2f}{r["max_Nm"]:>7.2f}{r["rms_Nm"]:>7.2f}')
+                      f'{r["p99_Nm"]:>7.2f}{r["max_Nm"]:>7.2f}{r["p99_end_of_step_Nm"]:>9.2f}{r["rms_Nm"]:>7.2f}')
 
 
 def _render(env, traj, stepping, episode_length, num_videos, outdir):

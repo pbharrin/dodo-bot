@@ -10,6 +10,7 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 | `train_ppo.py` | PPO training, checkpoints, final evaluation and videos |
 | `evaluate.py` | Reload a run, run deterministic rollouts, write `eval.json` and videos |
 | `render_backend.py` | Picks EGL for headless video, or falls back to no rendering if the GL libraries are missing |
+| `replay_mujoco.py` | Replays a policy in plain C MuJoCo under harsher conditions: full solver, smaller timestep, latency, lower torque limits |
 | `warm_start.py` | Starts stage 2 from the stage-1 policy, adapting the command inputs |
 | `test_dodo_env.py` | Pre-flight checks: model mass/geometry, MJX vs MuJoCo, passive standing, gait clock, randomization |
 
@@ -18,7 +19,9 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 - **CPU-validated (JAX backend, Apple M2):** all tests pass, the full train → save → evaluate → render pipeline runs, and the zero-action robot stands for 4 s. See "Validation" below for a short CPU learning-signal run.
 - **GPU-validated (MJX-Warp, g5.xlarge A10G, 2026-11-02):** all 6 tests (the 7th, a config check, was added afterwards) pass with `DODO_TEST_IMPL=warp`. A 10M-step trial ran at about 35k steps/s. Eval: 100% survival over 20 s with pushes in all 64 episodes, but stepping contact match 0.61 (the never-lift baseline is 0.60) and peak foot height about 1 cm. It learned to stand, not to step.
 - **Stage 1 trained (2026-11-02):** 150M steps on the g5.xlarge in 41 min. The policy stands and steps in place with 4 cm foot clearance and survives every evaluation episode with pushes. See "Stage 1 result" below. Not yet checked: C MuJoCo replay, rope compliance, measured actuator limits.
-- **Stage 2 trained (2026-11-02):** `stage2_walk` walks, turns and sidesteps on command with 100% survival with pushes, but with a favoured-leg (asymmetric) gait. A symmetry reward has been added for a fine-tuning run (`stage2_sym`), which hasn't been trained yet. See "Stage 2: walking" below.
+- **Stage 2 trained (2026-11-02):** `stage2_walk` walks, turns and sidesteps on command with 100% survival with pushes, but with a favoured-leg gait. **`stage2_sym`** (fine-tuned with a symmetry reward) fixes that and is the current best policy. See "Stage 2: walking" below.
+- **C MuJoCo replay passed (2026-11-02):** `stage2_sym` keeps 100% survival in plain C MuJoCo with the full solver, a 2 ms timestep, up to 40 ms latency and torque limits down to 6 Nm. See "C MuJoCo replay check".
+- **Torque measurement corrected (2026-11-02):** the stage-1 and `stage2_walk` torque tables below sampled torque at the end of each 20 ms control step and miss brief PD-servo spikes right after each new target. p95 and RMS there are fine; their max / saturation numbers understate the peaks. See "Torque spikes from position-target steps".
 
 ## Stage 1 result (2026-11-02)
 
@@ -57,7 +60,7 @@ Run `stage1_v5`: 150M env steps, 8192 envs, MJX-Warp on a g5.xlarge (A10G), doma
 
 Findings:
 
-- **No joint ever hits the 10 Nm limit** (0% of control steps saturated, stepping or standing).
+- **No joint ever hits the 10 Nm limit** (0% of control steps saturated, stepping or standing). *Correction:* this table samples the end of each control step. Brief servo spikes in the first substep after a new target do reach 10 Nm; see "Torque spikes from position-target steps".
 - **The torque comes from stepping itself, not from pushes.** The push-recovery table is nearly identical to the one above; it adds only the single highest peak (left ankle, 9.3 Nm). Single support needs it: hip roll, knee and ankle reach p95 of 4–5 Nm and p99 of up to 6.4 Nm on every gait cycle, with short peaks of 7–9 Nm. That matches the 6.7 Nm static hip-roll moment of the 6.84 kg model.
 - **RMS is at most 2.5 Nm** (hip roll and knee). This is the number to compare with the measured continuous rating; peaks must fit the measured short-term rating (about 9 Nm ≈ 14 A at the plan's 0.625 Nm/A estimate).
 - **The gait is asymmetric:** the left knee and ankle carry noticeably more torque than the right (p95 4.8 vs 3.2 Nm and 3.8 vs 2.0 Nm). No symmetry term is in the reward. Worth watching in videos and possibly penalizing.
@@ -114,7 +117,7 @@ If it learns to stand or shuffle instead of walking, the usual fixes are a large
 
 Walking reaches about 90% of the commanded speed and tracks yaw well. The legs never cross in the videos.
 
-**Torque while walking** (steady stepping, N m, compared with stage 1): p95 and RMS barely change. Hip roll p99 rises to 6.3 Nm (stage 1: 5.7), about the static single-support moment. The limit is touched only in rare spikes: left ankle 0.01% of control steps, right hip roll once. RMS stays at or below 2.5 Nm on every joint. The actuator target is unchanged from stage 1: about 2.5 Nm continuous, about 6.5 Nm p99 and brief 10 Nm peaks.
+**Torque while walking** (steady stepping, N m, compared with stage 1; end-of-control-step samples, see the correction in "Status"): p95 and RMS barely change. Hip roll p99 rises to 6.3 Nm (stage 1: 5.7), about the static single-support moment. The limit is touched only in rare spikes: left ankle 0.01% of control steps, right hip roll once. RMS stays at or below 2.5 Nm on every joint. The actuator target is unchanged from stage 1: about 2.5 Nm continuous, about 6.5 Nm p99 and brief 10 Nm peaks.
 
 | Joint | Left p95 | Left p99 | Left max | Right p95 | Right p99 | Right max | RMS (L / R) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -142,14 +145,89 @@ The left ankle uses 15–30% less range than the right while carrying nearly twi
 
 **Symmetry reward.** In a symmetric gait each leg repeats what the other did half a gait cycle earlier, mirrored. The env keeps the last 32 control steps of joint angles and, in stepping episodes, penalizes the squared error `|q_R(t) − M q_L(t − T/2)|² + |q_L(t) − M q_R(t − T/2)|²`, where T is taken from the gait clock. Pitch joints always count. Hip yaw and roll are weighted by `exp(−(v_y/0.03)² − (ω_z/0.1)²)`, because sideways and turning commands legitimately need asymmetric hip motion. Scale −4.0, about 5% of the per-step reward for the current gait. The penalty isn't in the critic's observation; the history is left out so the observation layout stays compatible with existing runs.
 
-Fine-tune from `stage2_walk` on the g5 (about 40 min):
+Fine-tune from `stage2_walk` on the g5 (about 40 min); this produced `stage2_sym`:
 
 ```bash
 python simulation/training/train_ppo.py --run-name stage2_sym --task walk \
     --warm-start simulation/results/local/train/stage2_walk 2>&1 | tee stage2_sym.log
 ```
 
-Check the symmetry table at the end of the log: ROM L/R ratios should move toward 1 and the ankle mirror error should drop well below 0.2 rad, without losing velocity tracking or survival. If the habit doesn't train out, retrain stages 1 and 2 from scratch with the symmetry reward on from the start (`--env-override reward_config.scales.symmetry=-4.0` for stage 1). A policy that is mirror-symmetric by construction is the stronger fallback.
+If a habit like this doesn't train out, retrain stages 1 and 2 from scratch with the symmetry reward on from the start (`--env-override reward_config.scales.symmetry=-4.0` for stage 1). A policy that is mirror-symmetric by construction is the stronger fallback.
+
+### Stage 2 result: `stage2_sym` (2026-11-02), current best
+
+150M steps warm-started from `stage2_walk` with the symmetry reward (scale −4.0). Evaluated on the Mac with `evaluate.py --impl jax` (64 episodes). In the videos the left leg no longer looks injured.
+
+Mirror error (RMS rad) and ROM ratio, `stage2_walk` → `stage2_sym`:
+
+| Joint | Mirror error, all stepping | Mirror error, straight commands | ROM ratio L/R |
+| --- | --- | --- | --- |
+| ankle pitch | 0.213 → **0.048** | 0.190 → 0.039 | 0.85 → 0.95 |
+| knee pitch | 0.107 → 0.047 | 0.094 → 0.045 | 1.04 → 0.93 |
+| hip pitch | 0.099 → 0.037 | 0.080 → 0.032 | 0.96 → 1.02 |
+| hip roll | 0.049 → 0.045 | 0.035 → 0.027 | 0.82 → 0.92 |
+| hip yaw | 0.101 → 0.087 | 0.073 → 0.038 | 1.44 → 1.50 |
+
+Walking is unaffected or slightly better: 100% survival (64/64), stepping contact match 0.84, commanded / actual speed 0.151 / 0.147 m/s (98%), speed error 0.070 m/s, yaw-rate error 0.062 rad/s, peak foot height 4.3 cm.
+
+Remaining asymmetries, neither blocking:
+
+- **Left hip yaw moves about 50% more than the right** (ROM 0.17 vs 0.12 rad), but its straight-line mirror error is small (0.038). It comes from turning, where the yaw/roll symmetry penalty is faded out: the policy probably turns mostly with the left hip in both directions. Torques are small.
+- **Left ankle torque at the end of each control step is higher** (p99 6.5 vs 3.8 Nm) although the angles now mirror. The reward compares angles only; foot loading or centre of pressure may still differ. Measuring left/right foot normal force and CoP would find the cause.
+
+## C MuJoCo replay check
+
+`replay_mujoco.py` runs a trained policy with plain `mujoco.MjData` / `mj_step` (no MJX), rebuilding the observation exactly as the env does (checked by a unit test). Every condition replays the same 24 episodes: start state, gait, commands, pushes and sensor noise are shared, on the nominal model. There is no random one-step delay; latency is set explicitly as a sensor-to-actuator delay in milliseconds. Results go to `<run>/replay_mujoco.json`; `--video` renders one stepping episode per condition.
+
+```bash
+python simulation/training/replay_mujoco.py simulation/results/local/train/stage2_sym   # about 1.5 min on a Mac
+```
+
+`stage2_sym`, 24 episodes of 20 s each, all with pushes. By chance all 24 are stepping episodes (the stand share is 15%), so this set doesn't test standing; standing was already the easiest case in every evaluation.
+
+| Condition | Solver iters | Timestep | Latency | Torque limit | Survival | Contact match | Speed err (m/s) | Yaw err (rad/s) | Saturated |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| as trained | 2 | 4 ms | 0 | 10 Nm | 100% | 0.84 | 0.065 | 0.052 | 0.57% |
+| full solver | 100 | 4 ms | 0 | 10 Nm | 100% | 0.84 | 0.065 | 0.052 | 0.57% |
+| full solver, 2 ms | 100 | 2 ms | 0 | 10 Nm | 100% | 0.84 | 0.065 | 0.054 | 0.52% |
+| latency 10 ms | 100 | 4 ms | 10 ms | 10 Nm | 100% | 0.82 | 0.067 | 0.052 | 0.58% |
+| latency 20 ms | 100 | 4 ms | 20 ms | 10 Nm | 100% | 0.83 | 0.069 | 0.059 | 0.59% |
+| latency 40 ms | 100 | 4 ms | 40 ms | 10 Nm | 100% | 0.82 | 0.078 | 0.086 | 0.56% |
+| torque 8 Nm | 100 | 4 ms | 0 | 8 Nm | 100% | 0.84 | 0.065 | 0.052 | 1.44% |
+| torque 6 Nm | 100 | 4 ms | 0 | 6 Nm | 100% | 0.84 | 0.065 | 0.053 | 3.82% |
+| realistic | 100 | 2 ms | 10 ms | 8 Nm | 100% | 0.82 | 0.067 | 0.052 | 1.54% |
+
+Saturated = share of joint × control-step samples whose peak over substeps reaches the limit.
+
+Findings:
+
+- **No dependence on MJX shortcuts:** the full solver and a halved timestep give the same results as training physics. The "solver iterations limit reached" warnings during training didn't teach the policy to exploit soft contacts.
+- **Latency-tolerant:** 20 ms of constant delay costs almost nothing; 40 ms raises yaw-rate error by about 65% but nothing falls. The UNO Q → CAN → XDrive loop must stay well under 40 ms; under 20 ms gives margin.
+- **The 10 Nm peaks aren't needed:** clipping torque at 6 Nm leaves survival, gait and tracking unchanged. The peaks are the servo spikes described next, not load the gait relies on.
+
+Not covered yet: rope compliance and backlash, measured actuator torque-speed limits, a real current-loop model, encoder quantization, and the true masses. These need milestone-2 bench data.
+
+## Torque spikes from position-target steps
+
+The policy updates joint position targets every 20 ms, and the PD servo (kp = 30 Nm/rad) answers a target jump Δq with about 30·Δq Nm at once. A 0.33 rad jump is already 10 Nm. Replay instrumentation showed every saturated torque sample falls in the **first 4 ms substep after a new target**, none at the end of a control step. The env now records the peak over substeps (`info['peak_tau']`), and `evaluate.py` reports peak-based sat / p50–p99 / max, plus `p99 end` (end of control step) and RMS (time average, for heating).
+
+`stage2_sym`, steady stepping, N m:
+
+| Joint | Peak p95 | Peak p99 | Saturated (peak) | p99 end of step | RMS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| L / R hip yaw | 1.9 / 1.6 | 3.8 / 2.4 | 0% / 0% | 2.0 / 1.6 | 0.7 / 0.6 |
+| L / R hip roll | 5.0 / 5.4 | 6.3 / 6.4 | 0% / 0.02% | 6.0 / 6.1 | 2.5 / 2.5 |
+| L / R hip pitch | 2.3 / 2.7 | 3.4 / 3.8 | 0% / 0% | 2.3 / 2.2 | 0.8 / 0.9 |
+| L / R knee pitch | 6.7 / 7.7 | 8.8 / 10.0 | 0.19% / 1.93% | 4.6 / 4.2 | 2.2 / 1.9 |
+| L / R ankle pitch | 6.2 / 7.4 | 10.0 / 10.0 | 2.30% / 1.62% | 6.5 / 3.8 | 1.8 / 1.1 |
+
+Hip roll's peak and end-of-step values agree: its load is sustained single-support load. The knee and ankle peaks are servo spikes on top of a much lower sustained load.
+
+Implications:
+
+- **Actuator sizing:** continuous about 2.5 Nm RMS, sustained p99 about 6.5 Nm (hip roll, ankle). The spikes can be clipped by the drive's current limit without harm (6 Nm replay above).
+- **Capstan rope:** each spike is a load step on the rope: 10 Nm on a 40 mm radius is a 250 N tension change within milliseconds. Even if the motor can deliver it, the rope, anchors and tensioner would see it on most steps.
+- **Possible fixes for a later training run:** interpolate position targets across the 20 ms instead of stepping them (in sim and in the hardware command stream), add a target slew-rate limit, or raise the `action_rate` penalty. Any of these should also lower current spikes and heating. Re-run this replay afterwards.
 
 ## Validation (CPU, 2026-11-01)
 
@@ -264,7 +342,7 @@ If Warp reports contact or constraint overflow, raise `naconmax` (total contacts
 - `peak_joint_torque_Nm` (compare with the 10 Nm limit and, later, measured actuator limits)
 - `velocity_tracking`: command-tracking error while commanded to move and while commanded zero (stage 2).
 - `symmetry`: left vs. right range of motion, p95 torque and half-cycle mirror error while stepping (also printed as a table).
-- `torque`: per joint, the fraction of control steps at the torque limit (`saturated_frac`, |τ| ≥ 98% of limit) plus p50/p95/p99/max/RMS torque. It is split into `steady` and `push_recovery` (the 1 s after each push). Saturation during push recovery is acceptable. Saturation in `steady` stepping means the gait needs more torque than the actuator has. The same table prints to the console.
+- `torque`: per joint, the fraction of control steps at the torque limit (`saturated_frac`, peak |τ| over the step's substeps ≥ 98% of limit), p50/p95/p99/max of that peak, `p99_end_of_step_Nm` and RMS (time average). It is split into `steady` and `push_recovery` (the 1 s after each push). Saturation during push recovery is acceptable. Saturation in `steady` stepping means the gait needs more torque than the actuator has. The same table prints to the console.
 
 Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`). Those results go to `eval_override.json`, so the training-time `eval.json` is kept.
 
@@ -283,4 +361,4 @@ Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`
 
 1. Stage 1 (this): stand and step in place, robust to pushes.
 2. Stage 2 (set up, see above): walk forward slowly, sidestep and turn, warm-started from stage 1.
-3. Before hardware: replay the policy in C MuJoCo (not MJX) with added latency and measured actuator models, then export the actor network for UNO Q inference. Keep joint ordering, units, gains, normalization statistics and action scaling identical.
+3. Before hardware: the C MuJoCo replay is done (above). Next: smooth the position targets to remove servo spikes, add measured actuator and rope models once bench data exists and replay again, then export the actor network for UNO Q inference. Keep joint ordering, units, gains, normalization statistics and action scaling identical.
