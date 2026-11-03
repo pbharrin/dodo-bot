@@ -120,6 +120,24 @@ class EnvTest(unittest.TestCase):
         info['stepping'] = jp.array(0.0)
         self.assertEqual(float(ENV._symmetry_error(q_bad, info)), 0.0)
 
+    def test_action_filter(self):
+        """Off by default; with a cutoff, targets approach a held action exponentially."""
+        self.assertEqual(ENV._filter_alpha, 1.0)
+        env = dodo_env.DodoStepInPlace(config_overrides={
+            'impl': IMPL, 'naconmax': 64, 'action_delay_probability': 0.0,
+            **dodo_env.SMOOTH_OVERRIDES})
+        alpha = env._filter_alpha
+        self.assertAlmostEqual(alpha, 1 - np.exp(-2 * np.pi * 6.0 * 0.02), places=6)
+        step = jax.jit(env.step)
+        s = jax.jit(env.reset)(jax.random.PRNGKey(6))
+        a = jp.full(10, 0.2)
+        for n in range(1, 4):
+            s = step(s, a)
+            expect = 0.2 * (1 - (1 - alpha) ** n) * env._config.action_scale
+            np.testing.assert_allclose(np.asarray(s.info['motor_targets'] - env._default_pose),
+                                       expect, atol=1e-6)
+        np.testing.assert_allclose(np.asarray(s.info['last_act']), 0.2)   # obs keeps the raw action
+
     def test_domain_randomization_batches(self):
         keys = jax.random.split(jax.random.PRNGKey(3), 4)
         model, in_axes = dodo_env.domain_randomize(ENV.mjx_model, keys)

@@ -161,6 +161,7 @@ class Replay:
         noise_rng = np.random.default_rng(ep['noise_seed'])
         st = dict(phase=np.mod(np.array([ep['phase0'], ep['phase0'] + 0.5]), 1.0),
                   last_act=np.zeros(dodo_env.NUM_JOINTS), stepping=ep['stepping'],
+                  act_filt=np.zeros(dodo_env.NUM_JOINTS),
                   gait_freq=ep['gait_freq'], swing_height=ep['swing_height'],
                   encoder_offset=ep['encoder_offset'], command=ep['commands'][0])
         state = self.obs(d, st, noise_rng)
@@ -174,7 +175,9 @@ class Replay:
         for t in range(cfg.episode_length):
             a = self.act(state)
             d.qvel[:2] += ep['pushes'][t]
-            target = self.default_pose + a * cfg.action_scale
+            # Low-pass filter on the controller, before the link latency.
+            st['act_filt'] = st['act_filt'] + self.env._filter_alpha * (a - st['act_filt'])
+            target = self.default_pose + st['act_filt'] * cfg.action_scale
             pending.append((sub + lat_sub, target))
             peak_tau = np.zeros(m.nu)
             for _ in range(n_sub):
@@ -296,8 +299,9 @@ def main():
               f'{fmt(s["stepping_contact_match"], "7.2f")}{fmt(s["moving_lin_vel_error_mps"], "7.3f")}'
               f'{fmt(s["moving_yaw_rate_error_radps"], "7.3f")}{s["peak_torque_Nm"]:>6.1f}{s["torque_p99_Nm"]:>6.1f}'
               f'{100 * s["saturated_frac"]:>7.2f}{time.monotonic() - t0:>7.0f}', flush=True)
-    out = args.run_dir / 'replay_mujoco.json'
-    out.write_text(json.dumps({'episodes': args.episodes, 'seed': args.seed, 'results': summary}, indent=2))
+    out = args.run_dir / ('replay_mujoco.json' if not args.env_override else 'replay_mujoco_override.json')
+    out.write_text(json.dumps({'episodes': args.episodes, 'seed': args.seed, 'env_override': args.env_override,
+                               'results': summary}, indent=2))
     print('Wrote', out)
 
 

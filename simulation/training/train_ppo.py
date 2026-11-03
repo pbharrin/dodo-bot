@@ -7,6 +7,10 @@ Stage 2 (walking), starting from the stage-1 policy:
     python simulation/training/train_ppo.py --run-name stage2_walk --task walk \
         --warm-start simulation/results/local/train/stage1_v5
 
+Stage 2b (smoothed joint targets), starting from the stage-2 policy:
+    python simulation/training/train_ppo.py --run-name stage2_smooth --task walk_smooth \
+        --warm-start simulation/results/local/train/stage2_sym
+
 CPU smoke test (tiny, minutes; checks the pipeline end to end, not learning):
     python simulation/training/train_ppo.py --impl jax --smoke
 
@@ -87,9 +91,10 @@ def main():
     ap.add_argument('--num-evals', type=int)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--no-randomization', action='store_true', help='disable domain randomization')
-    ap.add_argument('--task', choices=['step', 'walk'], default='step',
+    ap.add_argument('--task', choices=['step', 'walk', 'walk_smooth'], default='step',
                     help='step: stage 1 stand/step in place; walk: stage 2 velocity commands '
-                         '(dodo_env.WALK_OVERRIDES). --env-override is applied on top.')
+                         '(dodo_env.WALK_OVERRIDES); walk_smooth: walk + action low-pass '
+                         'filter (dodo_env.SMOOTH_OVERRIDES). --env-override is applied on top.')
     ap.add_argument('--restore', type=Path,
                     help='checkpoint directory to resume the SAME task from (exact Brax restore)')
     ap.add_argument('--warm-start', type=Path, metavar='RUN_DIR',
@@ -112,8 +117,10 @@ def main():
     if args.restore and args.warm_start:
         ap.error('use either --restore or --warm-start, not both')
     overrides = {'impl': args.impl}
-    if args.task == 'walk':
+    if args.task in ('walk', 'walk_smooth'):
         overrides.update(dodo_env.WALK_OVERRIDES)
+    if args.task == 'walk_smooth':
+        overrides.update(dodo_env.SMOOTH_OVERRIDES)
     for item in args.env_override:
         key, val = item.split('=', 1)
         overrides[key] = json.loads(val)

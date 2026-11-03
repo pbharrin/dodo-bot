@@ -20,6 +20,7 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 - **GPU-validated (MJX-Warp, g5.xlarge A10G, 2026-11-02):** all 6 tests (the 7th, a config check, was added afterwards) pass with `DODO_TEST_IMPL=warp`. A 10M-step trial ran at about 35k steps/s. Eval: 100% survival over 20 s with pushes in all 64 episodes, but stepping contact match 0.61 (the never-lift baseline is 0.60) and peak foot height about 1 cm. It learned to stand, not to step.
 - **Stage 1 trained (2026-11-02):** 150M steps on the g5.xlarge in 41 min. The policy stands and steps in place with 4 cm foot clearance and survives every evaluation episode with pushes. See "Stage 1 result" below. Not yet checked: C MuJoCo replay, rope compliance, measured actuator limits.
 - **Stage 2 trained (2026-11-02):** `stage2_walk` walks, turns and sidesteps on command with 100% survival with pushes, but with a favoured-leg gait. **`stage2_sym`** (fine-tuned with a symmetry reward) fixes that and is the current best policy. See "Stage 2: walking" below.
+- **Stage 2b set up (2026-11-02):** action low-pass filter to remove servo torque spikes; ready to train. See "Stage 2b".
 - **C MuJoCo replay passed (2026-11-02):** `stage2_sym` keeps 100% survival in plain C MuJoCo with the full solver, a 2 ms timestep, up to 40 ms latency and torque limits down to 6 Nm. See "C MuJoCo replay check".
 - **Torque measurement corrected (2026-11-02):** the stage-1 and `stage2_walk` torque tables below sampled torque at the end of each 20 ms control step and miss brief PD-servo spikes right after each new target. p95 and RMS there are fine; their max / saturation numbers understate the peaks. See "Torque spikes from position-target steps".
 
@@ -177,7 +178,7 @@ Remaining asymmetries, neither blocking:
 
 ## C MuJoCo replay check
 
-`replay_mujoco.py` runs a trained policy with plain `mujoco.MjData` / `mj_step` (no MJX), rebuilding the observation exactly as the env does (checked by a unit test). Every condition replays the same 24 episodes: start state, gait, commands, pushes and sensor noise are shared, on the nominal model. There is no random one-step delay; latency is set explicitly as a sensor-to-actuator delay in milliseconds. Results go to `<run>/replay_mujoco.json`; `--video` renders one stepping episode per condition.
+`replay_mujoco.py` runs a trained policy with plain `mujoco.MjData` / `mj_step` (no MJX), rebuilding the observation exactly as the env does (checked by a unit test). Every condition replays the same 24 episodes: start state, gait, commands, pushes and sensor noise are shared, on the nominal model. There is no random one-step delay; latency is set explicitly as a sensor-to-actuator delay in milliseconds. Results go to `<run>/replay_mujoco.json` (`replay_mujoco_override.json` with `--env-override`); `--video` renders one stepping episode per condition.
 
 ```bash
 python simulation/training/replay_mujoco.py simulation/results/local/train/stage2_sym   # about 1.5 min on a Mac
@@ -227,7 +228,35 @@ Implications:
 
 - **Actuator sizing:** continuous about 2.5 Nm RMS, sustained p99 about 6.5 Nm (hip roll, ankle). The spikes can be clipped by the drive's current limit without harm (6 Nm replay above).
 - **Capstan rope:** each spike is a load step on the rope: 10 Nm on a 40 mm radius is a 250 N tension change within milliseconds. Even if the motor can deliver it, the rope, anchors and tensioner would see it on most steps.
-- **Possible fixes for a later training run:** interpolate position targets across the 20 ms instead of stepping them (in sim and in the hardware command stream), add a target slew-rate limit, or raise the `action_rate` penalty. Any of these should also lower current spikes and heating. Re-run this replay afterwards.
+- **Fix being trained:** a low-pass action filter (next section). Linear interpolation of targets across the 20 ms was the alternative; the filter was chosen because it's the more common approach and needs nothing from the XDrive beyond 50 Hz position targets.
+
+## Stage 2b: action low-pass filter (set up 2026-11-02, not yet trained)
+
+A first-order low-pass filter now sits between the policy and the joint targets: `a_f += α·(a − a_f)` every 20 ms, then `q* = q_home + 0.5 rad × a_f`. With `action_filter_hz = 6` Hz, α = 1 − exp(−2π·6·0.02) ≈ 0.53, so each target step is about half the raw action step. That leaves about 4× margin over the 1.0–1.5 Hz gait (about 14° phase lag at 1.5 Hz). The `action_rate` penalty doubles from −0.05 to −0.1 at the same time.
+
+- **On hardware the UNO Q runs the same filter** on the policy output before sending targets over CAN, with the state starting at zero (home pose). The filter is part of the policy interface, like `action_scale`: a policy trained with it must run with it, and the reverse.
+- **Observations are unchanged.** "Last action" is still the raw policy output, and the filter state isn't observed (the joint positions largely reveal it). So `--warm-start stage2_sym` loads directly and adapts nothing.
+- **Defaults are off** (`action_filter_hz = 0`), so stage 1, `stage2_walk` and `stage2_sym` evaluate and replay exactly as before. `--task walk_smooth` applies `WALK_OVERRIDES` plus `SMOOTH_OVERRIDES`.
+
+Run on the GPU machine (about 40 min for 150M steps):
+
+```bash
+python simulation/training/train_ppo.py --run-name stage2_smooth --task walk_smooth \
+    --warm-start simulation/results/local/train/stage2_sym
+python simulation/training/evaluate.py simulation/results/local/train/stage2_smooth
+python simulation/training/replay_mujoco.py simulation/results/local/train/stage2_smooth
+```
+
+Zero-shot check (CPU, C MuJoCo replay, the same 8 stepping episodes): `stage2_sym` run with the 6 Hz filter it was never trained with.
+
+| Condition | Filter | Survival | Contact match | Speed error m/s | Yaw error rad/s | Peak torque p99 Nm | Saturated |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| as trained | off | 100% | 0.84 | 0.065 | 0.051 | 10.0 | 0.54% |
+| as trained | 6 Hz | 100% | 0.76 | 0.120 | 0.092 | 8.1 | 0.01% |
+| 40 ms latency | off | 100% | 0.81 | 0.078 | 0.086 | 10.0 | 0.53% |
+| 40 ms latency | 6 Hz | 100% | 0.76 | 0.125 | 0.124 | 8.0 | 0.00% |
+
+The filter removes nearly all saturation even before retraining. Tracking and gait timing get worse because the policy doesn't expect the lag; the fine-tune should recover them. Success criteria for `stage2_smooth`: tracking and contact match back to `stage2_sym` levels, knee/ankle peak p99 well under 10 Nm, and 40 ms latency still survivable.
 
 ## Validation (CPU, 2026-11-01)
 
@@ -350,7 +379,7 @@ Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`
 
 ## Design choices and what to replace with hardware data
 
-- **Action:** `q* = q_home + 0.5 rad × a`, with `a` tanh-bounded to [-1, 1], clamped to the joint range, and tracked by a joint-level PD servo (kp 30, kd 1, ±10 Nm). This is the "bounded joint-position targets with validated local gains" interface from the project plan. The real MKS XDrive position loop runs on the motor side through the capstan. Once a module is on the bench, identify its joint-level response and match `KP`/`KD` (or model it explicitly).
+- **Action:** `q* = q_home + 0.5 rad × a` (or the low-pass-filtered `a` with `action_filter_hz`, stage 2b), with `a` tanh-bounded to [-1, 1], clamped to the joint range, and tracked by a joint-level PD servo (kp 30, kd 1, ±10 Nm). This is the "bounded joint-position targets with validated local gains" interface from the project plan. The real MKS XDrive position loop runs on the motor side through the capstan. Once a module is on the bench, identify its joint-level response and match `KP`/`KD` (or model it explicitly).
 - **Observations:** the policy gets only what the robot will have: IMU gyro and gravity direction, joint encoders, the previous action and the gait clock. Base velocity, contacts and foot heights go only to the critic.
 - **Sim-to-real randomization:** floor friction, link masses, torso mass (−0.3 to +0.8 kg) and CoM (±2 cm), armature, damping, friction loss, servo gains, torque limit, a one-control-step action delay on half the episodes, ±0.02 rad encoder offsets, sensor noise and base-velocity pushes.
 - **Model estimates** (tagged `ESTIMATE` in `build_model_v5.py`) still need hardware data: 0.45 kg per actuator module, 1.6 kg torso, link masses, rotor inertia (→ 0.0096 kg m² armature), joint friction/damping, and where the knee and ankle motors sit. When modules are weighed and characterized (milestone 2), update the generator, regenerate, rerun the tests and retrain. Policies are tied to a model version.
@@ -361,4 +390,4 @@ Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`
 
 1. Stage 1 (this): stand and step in place, robust to pushes.
 2. Stage 2 (set up, see above): walk forward slowly, sidestep and turn, warm-started from stage 1.
-3. Before hardware: the C MuJoCo replay is done (above). Next: smooth the position targets to remove servo spikes, add measured actuator and rope models once bench data exists and replay again, then export the actor network for UNO Q inference. Keep joint ordering, units, gains, normalization statistics and action scaling identical.
+3. Before hardware: the C MuJoCo replay is done (above). Target smoothing is set up as stage 2b (above). Next: add measured actuator and rope models once bench data exists and replay again, then export the actor network for UNO Q inference. Keep joint ordering, units, gains, normalization statistics and action scaling identical.

@@ -7,8 +7,11 @@ walking task without changing the code.
 
 Policy interface (keep identical on hardware, see docs/project-plan.md section 7):
   * 50 Hz policy (ctrl_dt = 0.02 s).
-  * action a (10,) -> joint position target q* = q_home + action_scale * a,
-    clamped to the joint range by MuJoCo (ctrlrange inherits the joint range).
+  * action a (10,) -> optional first-order low-pass filter (action_filter_hz,
+    runs on the robot's controller too) -> joint position target
+    q* = q_home + action_scale * a_filtered, clamped to the joint range by MuJoCo
+    (ctrlrange inherits the joint range). "last action" in the observation is
+    the raw, unfiltered policy output.
   * Joint order: left hip_yaw, hip_roll, hip_pitch, knee_pitch, ankle_pitch,
     then right in the same order. qpos = 0 is the neutral bird stance.
   * Actor observation, "state" (46,):
@@ -54,6 +57,22 @@ WALK_OVERRIDES = {
     'reward_config.scales.symmetry': -4.0,
 }
 
+# Stage 2b: smooth the joint targets so the PD servo no longer kicks to the torque
+# limit on each new target (train_ppo.py --task walk_smooth --warm-start stage2_sym).
+# 6 Hz keeps ~4x margin over the 1.0-1.5 Hz gait (phase lag ~14 deg at 1.5 Hz) and
+# shrinks each target step to ~53% of the raw action step.
+SMOOTH_OVERRIDES = {
+    'action_filter_hz': 6.0,
+    'reward_config.scales.action_rate': -0.1,
+}
+
+
+def filter_alpha(cutoff_hz: float, dt: float) -> float:
+    """Per-step gain of y += alpha * (x - y); 1.0 (no filtering) when cutoff_hz <= 0."""
+    if cutoff_hz is None or cutoff_hz <= 0:
+        return 1.0
+    return float(1.0 - np.exp(-2.0 * np.pi * cutoff_hz * dt))
+
 
 def default_config() -> config_dict.ConfigDict:
     return config_dict.create(
@@ -62,6 +81,7 @@ def default_config() -> config_dict.ConfigDict:
         episode_length=1000,          # 20 s
         action_repeat=1,
         action_scale=0.5,             # rad per unit action (policy output is tanh-bounded to [-1, 1])
+        action_filter_hz=0.0,         # first-order low-pass on actions; 0 = off (stages 1, 2)
         soft_joint_pos_limit_factor=0.9,
         impl='warp',                  # 'warp' on the GPU box, 'jax' for CPU smoke tests
         naconmax=16 * 8192,           # contact buffer across all worlds (<= 8 used per world)
@@ -151,6 +171,7 @@ class DodoStepInPlace(mjx_env.MjxEnv):
     def _post_init(self) -> None:
         m = self._mj_model
         self._init_q = jp.array(m.keyframe('home').qpos)
+        self._filter_alpha = filter_alpha(self._config.action_filter_hz, self._config.ctrl_dt)
         self._default_pose = jp.array(m.keyframe('home').qpos[7:])
         lowers, uppers = m.jnt_range[1:].T
         c, r = (lowers + uppers) / 2, uppers - lowers
@@ -234,6 +255,7 @@ class DodoStepInPlace(mjx_env.MjxEnv):
                 ko, (NUM_JOINTS,), minval=-cfg.encoder_offset, maxval=cfg.encoder_offset),
             'last_act': jp.zeros(NUM_JOINTS),
             'motor_targets': jp.zeros(NUM_JOINTS),
+            'act_filt': jp.zeros(NUM_JOINTS),            # low-pass filter state (action units)
             'q_hist': jp.zeros((HIST_LEN, NUM_JOINTS)),   # [0] = previous control step
             'peak_tau': jp.zeros(NUM_JOINTS),             # max |torque| over the last step's substeps
             'hist_len': 0,
@@ -262,9 +284,11 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         push *= cfg.push_config.enable
         data = state.data.replace(qvel=state.data.qvel.at[:2].add(push))
 
-        # One control-step latency on some episodes.
+        # One control-step latency on some episodes, then the action low-pass filter
+        # (both linear and time-invariant, so the order doesn't matter).
         applied = jp.where(info['delay'] > 0.5, info['last_act'], action)
-        motor_targets = self._default_pose + applied * cfg.action_scale
+        info['act_filt'] = info['act_filt'] + self._filter_alpha * (applied - info['act_filt'])
+        motor_targets = self._default_pose + info['act_filt'] * cfg.action_scale
         data, info['peak_tau'] = self._substeps(data, motor_targets)
         info['motor_targets'] = motor_targets
 
