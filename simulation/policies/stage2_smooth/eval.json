@@ -1,0 +1,526 @@
+{
+  "all": {
+    "velocity_tracking": {
+      "moving": {
+        "control_steps": 45502,
+        "lin_vel_error_mps": 0.06604907661676407,
+        "yaw_rate_error_radps": 0.051502253860235214,
+        "mean_cmd_speed_mps": 0.15053117275238037,
+        "mean_speed_mps": 0.1482722908258438
+      },
+      "zero_command": {
+        "control_steps": 18498,
+        "lin_vel_error_mps": 0.02861449494957924,
+        "yaw_rate_error_radps": 0.020370926707983017,
+        "mean_cmd_speed_mps": 0.0,
+        "mean_speed_mps": 0.02861449494957924
+      }
+    },
+    "episodes": 64,
+    "survival_rate": 1.0,
+    "mean_time_alive_s": 20.0,
+    "contact_match": 0.8490234613418579,
+    "mean_peak_foot_height_m": 0.03790241479873657,
+    "base_drift_m": 1.0746660232543945,
+    "peak_joint_torque_Nm": 10.0
+  },
+  "stepping": {
+    "velocity_tracking": {
+      "moving": {
+        "control_steps": 45502,
+        "lin_vel_error_mps": 0.06604907661676407,
+        "yaw_rate_error_radps": 0.051502253860235214,
+        "mean_cmd_speed_mps": 0.15053117275238037,
+        "mean_speed_mps": 0.1482722908258438
+      },
+      "zero_command": {
+        "control_steps": 7498,
+        "lin_vel_error_mps": 0.05691656842827797,
+        "yaw_rate_error_radps": 0.038800425827503204,
+        "mean_cmd_speed_mps": 0.0,
+        "mean_speed_mps": 0.05691656842827797
+      }
+    },
+    "episodes": 53,
+    "survival_rate": 1.0,
+    "mean_time_alive_s": 20.0,
+    "contact_match": 0.8179811239242554,
+    "mean_peak_foot_height_m": 0.043825414031744,
+    "base_drift_m": 1.2955877780914307,
+    "peak_joint_torque_Nm": 10.0
+  },
+  "standing": {
+    "velocity_tracking": {
+      "zero_command": {
+        "control_steps": 11000,
+        "lin_vel_error_mps": 0.009322773665189743,
+        "yaw_rate_error_radps": 0.007808713708072901,
+        "mean_cmd_speed_mps": 0.0,
+        "mean_speed_mps": 0.009322773665189743
+      }
+    },
+    "episodes": 11,
+    "survival_rate": 1.0,
+    "mean_time_alive_s": 20.0,
+    "contact_match": 0.998590886592865,
+    "mean_peak_foot_height_m": 0.009364328347146511,
+    "base_drift_m": 0.010224934667348862,
+    "peak_joint_torque_Nm": 6.12400484085083
+  },
+  "episode_length_s": 20.0,
+  "torque": {
+    "limit_Nm": [
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0
+    ],
+    "saturation_threshold": 0.98,
+    "push_recovery_window_s": 1.0,
+    "stepping": {
+      "steady": {
+        "control_steps": 43913,
+        "joints": {
+          "left_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.53,
+            "p95_Nm": 1.84,
+            "p99_Nm": 3.53,
+            "max_Nm": 6.44,
+            "p99_end_of_step_Nm": 1.9,
+            "rms_Nm": 0.6
+          },
+          "left_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.65,
+            "p95_Nm": 4.76,
+            "p99_Nm": 5.74,
+            "max_Nm": 7.35,
+            "p99_end_of_step_Nm": 5.56,
+            "rms_Nm": 2.3
+          },
+          "left_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.92,
+            "p95_Nm": 2.47,
+            "p99_Nm": 3.48,
+            "max_Nm": 5.44,
+            "p99_end_of_step_Nm": 2.38,
+            "rms_Nm": 0.84
+          },
+          "left_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 2.32,
+            "p95_Nm": 5.3,
+            "p99_Nm": 6.31,
+            "max_Nm": 10.0,
+            "p99_end_of_step_Nm": 3.97,
+            "rms_Nm": 1.96
+          },
+          "left_ankle_pitch": {
+            "saturated_frac": 0.0011,
+            "p50_Nm": 1.16,
+            "p95_Nm": 4.9,
+            "p99_Nm": 8.3,
+            "max_Nm": 10.0,
+            "p99_end_of_step_Nm": 5.6,
+            "rms_Nm": 1.58
+          },
+          "right_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.49,
+            "p95_Nm": 1.5,
+            "p99_Nm": 2.05,
+            "max_Nm": 3.03,
+            "p99_end_of_step_Nm": 1.67,
+            "rms_Nm": 0.54
+          },
+          "right_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.51,
+            "p95_Nm": 5.52,
+            "p99_Nm": 6.37,
+            "max_Nm": 10.0,
+            "p99_end_of_step_Nm": 6.23,
+            "rms_Nm": 2.46
+          },
+          "right_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.95,
+            "p95_Nm": 2.08,
+            "p99_Nm": 2.59,
+            "max_Nm": 4.56,
+            "p99_end_of_step_Nm": 2.16,
+            "rms_Nm": 0.86
+          },
+          "right_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 2.47,
+            "p95_Nm": 5.81,
+            "p99_Nm": 7.26,
+            "max_Nm": 10.0,
+            "p99_end_of_step_Nm": 4.36,
+            "rms_Nm": 1.96
+          },
+          "right_ankle_pitch": {
+            "saturated_frac": 0.0003,
+            "p50_Nm": 1.12,
+            "p95_Nm": 5.75,
+            "p99_Nm": 7.48,
+            "max_Nm": 10.0,
+            "p99_end_of_step_Nm": 4.29,
+            "rms_Nm": 1.22
+          }
+        }
+      },
+      "push_recovery": {
+        "control_steps": 9087,
+        "joints": {
+          "left_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.53,
+            "p95_Nm": 1.8,
+            "p99_Nm": 3.51,
+            "max_Nm": 5.81,
+            "p99_end_of_step_Nm": 1.8,
+            "rms_Nm": 0.59
+          },
+          "left_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.68,
+            "p95_Nm": 4.86,
+            "p99_Nm": 5.85,
+            "max_Nm": 7.82,
+            "p99_end_of_step_Nm": 5.62,
+            "rms_Nm": 2.35
+          },
+          "left_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.93,
+            "p95_Nm": 2.41,
+            "p99_Nm": 3.44,
+            "max_Nm": 5.27,
+            "p99_end_of_step_Nm": 2.39,
+            "rms_Nm": 0.86
+          },
+          "left_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 2.32,
+            "p95_Nm": 5.34,
+            "p99_Nm": 6.39,
+            "max_Nm": 8.4,
+            "p99_end_of_step_Nm": 4.28,
+            "rms_Nm": 1.99
+          },
+          "left_ankle_pitch": {
+            "saturated_frac": 0.0015,
+            "p50_Nm": 1.25,
+            "p95_Nm": 4.87,
+            "p99_Nm": 8.27,
+            "max_Nm": 10.0,
+            "p99_end_of_step_Nm": 5.59,
+            "rms_Nm": 1.65
+          },
+          "right_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.49,
+            "p95_Nm": 1.51,
+            "p99_Nm": 2.01,
+            "max_Nm": 2.91,
+            "p99_end_of_step_Nm": 1.64,
+            "rms_Nm": 0.54
+          },
+          "right_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.51,
+            "p95_Nm": 5.49,
+            "p99_Nm": 6.39,
+            "max_Nm": 8.33,
+            "p99_end_of_step_Nm": 6.23,
+            "rms_Nm": 2.45
+          },
+          "right_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.95,
+            "p95_Nm": 2.1,
+            "p99_Nm": 2.59,
+            "max_Nm": 4.59,
+            "p99_end_of_step_Nm": 2.14,
+            "rms_Nm": 0.87
+          },
+          "right_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 2.49,
+            "p95_Nm": 5.88,
+            "p99_Nm": 7.3,
+            "max_Nm": 9.73,
+            "p99_end_of_step_Nm": 4.58,
+            "rms_Nm": 1.97
+          },
+          "right_ankle_pitch": {
+            "saturated_frac": 0.0008,
+            "p50_Nm": 1.2,
+            "p95_Nm": 5.75,
+            "p99_Nm": 7.66,
+            "max_Nm": 10.0,
+            "p99_end_of_step_Nm": 4.65,
+            "rms_Nm": 1.3
+          }
+        }
+      }
+    },
+    "standing": {
+      "steady": {
+        "control_steps": 8900,
+        "joints": {
+          "left_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.05,
+            "p95_Nm": 0.17,
+            "p99_Nm": 0.82,
+            "max_Nm": 3.73,
+            "p99_end_of_step_Nm": 0.61,
+            "rms_Nm": 0.14
+          },
+          "left_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.18,
+            "p95_Nm": 0.44,
+            "p99_Nm": 0.66,
+            "max_Nm": 3.03,
+            "p99_end_of_step_Nm": 0.62,
+            "rms_Nm": 0.25
+          },
+          "left_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.11,
+            "p95_Nm": 0.31,
+            "p99_Nm": 0.44,
+            "max_Nm": 2.32,
+            "p99_end_of_step_Nm": 0.37,
+            "rms_Nm": 0.14
+          },
+          "left_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.35,
+            "p95_Nm": 1.55,
+            "p99_Nm": 1.67,
+            "max_Nm": 6.12,
+            "p99_end_of_step_Nm": 1.62,
+            "rms_Nm": 1.36
+          },
+          "left_ankle_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.43,
+            "p95_Nm": 0.69,
+            "p99_Nm": 0.87,
+            "max_Nm": 4.86,
+            "p99_end_of_step_Nm": 0.82,
+            "rms_Nm": 0.47
+          },
+          "right_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.04,
+            "p95_Nm": 0.26,
+            "p99_Nm": 0.83,
+            "max_Nm": 2.61,
+            "p99_end_of_step_Nm": 0.78,
+            "rms_Nm": 0.16
+          },
+          "right_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.53,
+            "p95_Nm": 0.77,
+            "p99_Nm": 0.88,
+            "max_Nm": 2.12,
+            "p99_end_of_step_Nm": 0.87,
+            "rms_Nm": 0.55
+          },
+          "right_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.1,
+            "p95_Nm": 0.27,
+            "p99_Nm": 0.5,
+            "max_Nm": 2.16,
+            "p99_end_of_step_Nm": 0.43,
+            "rms_Nm": 0.14
+          },
+          "right_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.27,
+            "p95_Nm": 1.44,
+            "p99_Nm": 1.56,
+            "max_Nm": 5.08,
+            "p99_end_of_step_Nm": 1.48,
+            "rms_Nm": 1.27
+          },
+          "right_ankle_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.11,
+            "p95_Nm": 0.33,
+            "p99_Nm": 0.61,
+            "max_Nm": 3.96,
+            "p99_end_of_step_Nm": 0.53,
+            "rms_Nm": 0.19
+          }
+        }
+      },
+      "push_recovery": {
+        "control_steps": 2100,
+        "joints": {
+          "left_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.06,
+            "p95_Nm": 0.2,
+            "p99_Nm": 0.29,
+            "max_Nm": 0.54,
+            "p99_end_of_step_Nm": 0.26,
+            "rms_Nm": 0.09
+          },
+          "left_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.21,
+            "p95_Nm": 0.56,
+            "p99_Nm": 1.03,
+            "max_Nm": 1.78,
+            "p99_end_of_step_Nm": 1.01,
+            "rms_Nm": 0.3
+          },
+          "left_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.12,
+            "p95_Nm": 0.46,
+            "p99_Nm": 0.81,
+            "max_Nm": 1.48,
+            "p99_end_of_step_Nm": 0.63,
+            "rms_Nm": 0.19
+          },
+          "left_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.33,
+            "p95_Nm": 1.62,
+            "p99_Nm": 2.21,
+            "max_Nm": 3.9,
+            "p99_end_of_step_Nm": 2.2,
+            "rms_Nm": 1.33
+          },
+          "left_ankle_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.43,
+            "p95_Nm": 1.13,
+            "p99_Nm": 2.01,
+            "max_Nm": 4.21,
+            "p99_end_of_step_Nm": 1.93,
+            "rms_Nm": 0.59
+          },
+          "right_hip_yaw": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.05,
+            "p95_Nm": 0.2,
+            "p99_Nm": 0.28,
+            "max_Nm": 0.36,
+            "p99_end_of_step_Nm": 0.26,
+            "rms_Nm": 0.08
+          },
+          "right_hip_roll": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.48,
+            "p95_Nm": 0.79,
+            "p99_Nm": 1.04,
+            "max_Nm": 1.66,
+            "p99_end_of_step_Nm": 1.01,
+            "rms_Nm": 0.52
+          },
+          "right_hip_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.09,
+            "p95_Nm": 0.28,
+            "p99_Nm": 0.43,
+            "max_Nm": 0.72,
+            "p99_end_of_step_Nm": 0.32,
+            "rms_Nm": 0.11
+          },
+          "right_knee_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 1.25,
+            "p95_Nm": 1.48,
+            "p99_Nm": 1.93,
+            "max_Nm": 3.3,
+            "p99_end_of_step_Nm": 1.84,
+            "rms_Nm": 1.24
+          },
+          "right_ankle_pitch": {
+            "saturated_frac": 0.0,
+            "p50_Nm": 0.15,
+            "p95_Nm": 1.13,
+            "p99_Nm": 1.59,
+            "max_Nm": 3.66,
+            "p99_end_of_step_Nm": 1.55,
+            "rms_Nm": 0.43
+          }
+        }
+      }
+    }
+  },
+  "symmetry": {
+    "joints": {
+      "hip_yaw": {
+        "rom_left_rad": 0.177,
+        "rom_right_rad": 0.1381,
+        "rom_ratio_left_over_right": 1.281,
+        "torque_p95_left_Nm": 1.83,
+        "torque_p95_right_Nm": 1.5
+      },
+      "hip_roll": {
+        "rom_left_rad": 0.1356,
+        "rom_right_rad": 0.1442,
+        "rom_ratio_left_over_right": 0.941,
+        "torque_p95_left_Nm": 4.78,
+        "torque_p95_right_Nm": 5.51
+      },
+      "hip_pitch": {
+        "rom_left_rad": 0.2375,
+        "rom_right_rad": 0.2311,
+        "rom_ratio_left_over_right": 1.028,
+        "torque_p95_left_Nm": 2.46,
+        "torque_p95_right_Nm": 2.08
+      },
+      "knee_pitch": {
+        "rom_left_rad": 0.34,
+        "rom_right_rad": 0.3521,
+        "rom_ratio_left_over_right": 0.966,
+        "torque_p95_left_Nm": 5.31,
+        "torque_p95_right_Nm": 5.82
+      },
+      "ankle_pitch": {
+        "rom_left_rad": 0.4138,
+        "rom_right_rad": 0.4167,
+        "rom_ratio_left_over_right": 0.993,
+        "torque_p95_left_Nm": 4.9,
+        "torque_p95_right_Nm": 5.75
+      }
+    },
+    "mirror_error_rms_rad": {
+      "all_stepping": {
+        "hip_yaw": 0.0907,
+        "hip_roll": 0.0453,
+        "hip_pitch": 0.0327,
+        "knee_pitch": 0.0432,
+        "ankle_pitch": 0.0446
+      },
+      "straight": {
+        "hip_yaw": 0.0303,
+        "hip_roll": 0.0275,
+        "hip_pitch": 0.0268,
+        "knee_pitch": 0.0407,
+        "ankle_pitch": 0.0377
+      }
+    }
+  }
+}

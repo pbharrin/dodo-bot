@@ -8,6 +8,7 @@ MuJoCo models, standing and walking controllers, diagnostic experiments, and sel
 - `controllers/`: reusable control algorithms (standing, CoP, and future walking).
 - `experiments/`: reproducible experiments, probes, and tests.
 - `training/`: MuJoCo Playground / MJX-Warp reinforcement-learning environments and training scripts.
+- `policies/`: archived milestone policies (weights, normalizer and training config), currently `stage2_smooth`.
 - `results/`: small selected CSV outputs and documented experiment findings. Avoid committing large video files.
 
 ## Current work
@@ -26,4 +27,4 @@ The model retains its original 130 mm hip spacing. No geometry changes were made
 
 ## Learned stand / step-in-place policy (v5 model)
 
-Development has moved from quasi-static single-support control to dynamic policy training. The [v5 model](models/README.md) uses the project-plan geometry and estimated actuator masses (6.8 kg). The [stage 1 training environment](training/README.md) trains standing and stepping in place with MuJoCo Playground, Brax PPO and MJX-Warp. It is CPU-validated; GPU training has not been run yet.
+Development has moved from quasi-static single-support control to dynamic policy training. The [v5 model](models/README.md) uses the project-plan geometry and estimated actuator masses (6.8 kg). The [stage 1 training environment](training/README.md) trains standing and stepping in place with MuJoCo Playground, Brax PPO and MJX-Warp. Trained on a g5.xlarge GPU through stage 2 (walking, turning, sidestepping with pushes). The current best policy is archived in [policies/stage2_smooth](policies/README.md).
