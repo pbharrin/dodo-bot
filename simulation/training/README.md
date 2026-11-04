@@ -248,6 +248,33 @@ Moving the legs 20 mm forward moves the whole-body CoM 12.5 mm backward relative
 
 This is a policy problem, not a physics limit: the CoM stays 40+ mm inside the foot's rear edge. Training randomizes the torso CoM by ±2 cm, which moves the whole-body CoM only about ±7 mm (the torso body is 2.5 of 6.84 kg). Backward shifts beyond that are outside what the policy has seen. **The real robot's CoM won't be known that precisely** (battery position, wiring, shell, the estimated masses), so this matters for hardware regardless of the hip design. The fix is a fine-tune with wider CoM randomization; then rerun this sweep.
 
+## Stage 2c: wider centre-of-mass randomization (set up 2026-11-04, not yet trained)
+
+`--task walk_com` is `walk_smooth` plus `COM_OVERRIDES`: torso CoM randomized ±5 cm fore/aft instead of ±2 cm (sideways and vertical stay ±2 cm), which moves the whole-body CoM by about ±18 mm. The range is now the `torso_com_range` config key (default unchanged at ±2 cm). It trains on model v6 (the default) and warm-starts from the archived `stage2_smooth`; observations are unchanged, so the warm start loads as-is.
+
+```bash
+python simulation/training/train_ppo.py --run-name stage2_com --task walk_com \
+    --warm-start simulation/policies/stage2_smooth
+python simulation/training/evaluate.py simulation/results/local/train/stage2_com
+python simulation/training/replay_mujoco.py simulation/results/local/train/stage2_com
+python simulation/training/hip_offset_sweep.py --variants com --policy simulation/results/local/train/stage2_com
+```
+
+The last command is the CoM sensitivity check (whole-body CoM moved by shifting the torso shell; about 2 min on a Mac or the g5). Before training, `stage2_smooth` on v6 (24 episodes; full solver / realistic):
+
+| Whole-body CoM shift | Survival | Speed err (m/s) | Yaw err (rad/s) |
+| --- | ---: | ---: | ---: |
+| 0 | 100% / 100% | 0.067 / 0.068 | 0.052 / 0.051 |
+| 6 mm back | 96% / 96% | 0.068 / 0.070 | 0.055 / 0.054 |
+| 9 mm back | 92% / 88% | 0.071 / 0.073 | 0.059 / 0.059 |
+| 12 mm back | 75% / 75% | 0.075 / 0.077 | 0.065 / 0.066 |
+| 15 mm back | 62% / 62% | 0.079 / 0.082 | 0.074 / 0.075 |
+| 20 mm back | 33% / 38% | 0.101 / 0.104 | 0.104 / 0.103 |
+| 12 mm forward | 100% / 100% | 0.069 / 0.071 | 0.060 / 0.061 |
+| 20 mm forward | 96% / 96% | 0.075 / 0.078 | 0.072 / 0.074 |
+
+Success criteria for `stage2_com`: 100% survival from 15 mm back to 15 mm forward, at least 90% at ±20 mm, and nominal tracking and torque at `stage2_smooth` levels. If it succeeds, archive it as the current best and rerun the hip offset sweep with it.
+
 ## C MuJoCo replay check
 
 `replay_mujoco.py` runs a trained policy with plain `mujoco.MjData` / `mj_step` (no MJX), rebuilding the observation exactly as the env does (checked by a unit test). Every condition replays the same 24 episodes: start state, gait, commands, pushes and sensor noise are shared, on the nominal model. There is no random one-step delay; latency is set explicitly as a sensor-to-actuator delay in milliseconds. Results go to `<run>/replay_mujoco.json` (`replay_mujoco_override.json` with `--env-override`); `--video` renders one stepping episode per condition.

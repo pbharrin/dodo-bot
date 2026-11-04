@@ -2,6 +2,7 @@
 
     python simulation/training/hip_offset_sweep.py            # all variants, ~5 min on a Mac
     python simulation/training/hip_offset_sweep.py --variants baseline roll_axis_out_20
+    python simulation/training/hip_offset_sweep.py --variants com --policy <run dir>   # CoM sensitivity
 
 The v6 generator places the hip yaw, roll and pitch axes at one point. Real
 bearings, drums and supports need offsets between them. This script builds v6
@@ -20,7 +21,7 @@ the roll axis relative to the yaw axis, "pitch" the pitch centre relative to
 the roll axis. The hip pitch centre stays at 330 mm, so leg length and stance
 height don't change.
 
-Writes simulation/results/local/hip_sweep/hip_offset_sweep.json.
+Writes simulation/results/local/hip_sweep/hip_offset_sweep_<policy name>.json.
 """
 import argparse
 import json
@@ -68,6 +69,12 @@ VARIANTS = {
     # 15 mm outboard, roll axis 10 mm outboard of the yaw axis.
     'packaged_example':     ((0, 10, -30), (0, 15, -25)),
 }
+# name: whole-body CoM shift forward (mm), made by moving the torso shell mass.
+# Not a hip offset, but the fore/aft hip results act through it.
+COM_VARIANTS = {
+    'com_back_6': -6, 'com_back_9': -9, 'com_back_12': -12, 'com_back_15': -15,
+    'com_back_20': -20, 'com_fwd_12': 12, 'com_fwd_20': 20,
+}
 CONDITIONS = ('full_solver', 'realistic')
 GROUPS = ('hip_yaw', 'hip_roll', 'hip_pitch', 'knee_pitch', 'ankle_pitch')
 SHORT = {'hip_yaw': 'yaw p99', 'hip_roll': 'roll p99', 'hip_pitch': 'pitch p99',
@@ -75,10 +82,16 @@ SHORT = {'hip_yaw': 'yaw p99', 'hip_roll': 'roll p99', 'hip_pitch': 'pitch p99',
 
 
 def build_xml(name, out_dir: Path) -> Path:
-    roll, pitch = VARIANTS[name]
-    xml = build_model_v6.make_model_with(
-        HIP_ROLL_OFFSET=tuple(v / 1000 for v in roll),
-        HIP_PITCH_OFFSET=tuple(v / 1000 for v in pitch))
+    if name in COM_VARIANTS:
+        b = build_model_v6
+        total = b.TORSO_MASS + 10 * b.ACTUATOR_MODULE_MASS + 2 * (b.THIGH_LINK_MASS + b.SHANK_LINK_MASS + b.FOOT_MASS)
+        dx = COM_VARIANTS[name] / 1000 * total / b.TORSO_MASS
+        xml = b.make_model_with(TORSO_COM_OFFSET=(dx, 0.0, 0.0))
+    else:
+        roll, pitch = VARIANTS[name]
+        xml = build_model_v6.make_model_with(
+            HIP_ROLL_OFFSET=tuple(v / 1000 for v in roll),
+            HIP_PITCH_OFFSET=tuple(v / 1000 for v in pitch))
     path = out_dir / f'dodo_v6_{name}.xml'
     path.write_text(xml)
     return path
@@ -108,11 +121,15 @@ def joint_stats(results):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--policy', type=Path, default=REPO / 'simulation' / 'policies' / 'stage2_smooth')
-    ap.add_argument('--variants', nargs='+', default=list(VARIANTS), choices=list(VARIANTS))
+    ap.add_argument('--variants', nargs='+', default=list(VARIANTS), choices=list(VARIANTS) + list(COM_VARIANTS) + ['com'],
+                    help="hip variants (default all) and/or CoM variants; 'com' = baseline + all CoM variants")
     ap.add_argument('--conditions', nargs='+', default=list(CONDITIONS), choices=list(replay_mujoco.CONDITIONS))
     ap.add_argument('--episodes', type=int, default=24)
     ap.add_argument('--out', type=Path, default=REPO / 'simulation' / 'results' / 'local' / 'hip_sweep')
     args = ap.parse_args()
+    if 'com' in args.variants:
+        args.variants = [v for v in args.variants if v != 'com']
+        args.variants += [v for v in ['baseline'] + list(COM_VARIANTS) if v not in args.variants]
     args.out.mkdir(parents=True, exist_ok=True)
 
     cfg = json.loads((args.policy / 'config.json').read_text())
@@ -131,7 +148,9 @@ def main():
         moment = static_hip_roll_moment(env.mj_model)
         replay = replay_mujoco.Replay(env, policy)
         episodes = [replay.new_episode(i) for i in range(args.episodes)]
-        summary[name] = {'roll_offset_mm': VARIANTS[name][0], 'pitch_offset_mm': VARIANTS[name][1],
+        summary[name] = {'roll_offset_mm': VARIANTS.get(name, ((0, 0, 0),))[0],
+                         'pitch_offset_mm': VARIANTS.get(name, (0, (0, 0, 0)))[1],
+                         'com_shift_mm': COM_VARIANTS.get(name, 0),
                          'static_hip_roll_moment_Nm': moment, 'conditions': {}}
         for cname in args.conditions:
             c = replay_mujoco.CONDITIONS[cname]
@@ -146,7 +165,7 @@ def main():
                   + ''.join(f'{s["joints"][g]["p99_Nm"]:>9.2f}' for g in GROUPS)
                   + f'{s["joints"]["hip_roll"]["p95_Nm"]:>8.2f}{100 * s["saturated_frac"]:>7.2f}'
                   f'   ({time.monotonic() - t0:.0f} s)', flush=True)
-    out = args.out / 'hip_offset_sweep.json'
+    out = args.out / f'hip_offset_sweep_{args.policy.name}.json'
     out.write_text(json.dumps({'policy': str(args.policy), 'episodes': args.episodes,
                                'columns': 'joint values = peak-over-substeps torque p99, max of L/R',
                                'results': summary}, indent=2))

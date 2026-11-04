@@ -55,6 +55,9 @@ HIP_OFFSET_Y = 0.100           # plan: 180-220 mm hip spacing -> 200 mm (hip yaw
 # unchanged); vertical offsets move the yaw/roll axes up into the torso.
 HIP_ROLL_OFFSET = (0.0, 0.0, 0.0)
 HIP_PITCH_OFFSET = (0.0, 0.0, 0.0)
+# Offset of the torso shell mass (TORSO_MASS) from the torso origin, m. Used by
+# sensitivity sweeps to move the whole-body CoM; zero in the committed model.
+TORSO_COM_OFFSET = (0.0, 0.0, 0.0)
 TORSO_HALF = (0.140, 0.120, 0.100)   # plan bounding box 280 x 240 x 200 mm
 THIGH_LENGTH = 0.130           # plan: upper leg 120-150 mm
 SHANK_LENGTH = 0.147           # plan: shank 140-170 mm (solved for HIP_Z)
@@ -232,7 +235,7 @@ def make_model() -> str:
       <freejoint name="floating_base"/>
       <camera name="track" pos="0.9 -0.9 0.2" xyaxes="0.707 0.707 0 -0.2 0.2 0.96" mode="trackcom"/>
       <site name="imu" pos="0 0 0" size="0.01"/>
-      <geom name="torso_geom" class="visual" type="ellipsoid" size="{TORSO_HALF[0]} {TORSO_HALF[1]} {TORSO_HALF[2]}" mass="{TORSO_MASS}" rgba="0.37 0.57 0.70 0.6"/>
+      <geom name="torso_geom" class="visual" type="ellipsoid"{'' if not any(TORSO_COM_OFFSET) else f' pos="{_vec(TORSO_COM_OFFSET)}"'} size="{TORSO_HALF[0]} {TORSO_HALF[1]} {TORSO_HALF[2]}" mass="{TORSO_MASS}" rgba="0.37 0.57 0.70 0.6"/>
       {motor_geom('left_hip_yaw_module', f'0 {HIP_OFFSET_Y} {HIP_OFFSET_Z + 0.055:.6f}', 'z')}
       {motor_geom('right_hip_yaw_module', f'0 {-HIP_OFFSET_Y} {HIP_OFFSET_Z + 0.055:.6f}', 'z')}
 {leg('left', HIP_OFFSET_Y)}

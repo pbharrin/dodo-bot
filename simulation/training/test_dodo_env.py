@@ -178,6 +178,16 @@ class EnvTest(unittest.TestCase):
         self.assertEqual(model.body_mass.shape[0], 4)
         self.assertEqual(model.actuator_forcerange.shape, (4, 10, 2))
         self.assertEqual(in_axes.body_mass, 0)
+        # Torso CoM randomization follows torso_com_range.
+        keys = jax.random.split(jax.random.PRNGKey(4), 256)
+        base = np.asarray(ENV.mjx_model.body_ipos[1])
+        model, _ = dodo_env.domain_randomize(ENV.mjx_model, keys,
+                                             torso_com_range=dodo_env.COM_OVERRIDES['torso_com_range'])
+        dx = np.asarray(model.body_ipos[:, 1]) - base
+        self.assertTrue(0.04 < np.abs(dx[:, 0]).max() <= 0.05)
+        self.assertTrue(np.abs(dx[:, 1:]).max() <= 0.02)
+        model, _ = dodo_env.domain_randomize(ENV.mjx_model, keys)
+        self.assertTrue(np.abs(np.asarray(model.body_ipos[:, 1]) - base).max() <= 0.02)
 
 
 
