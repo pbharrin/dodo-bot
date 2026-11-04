@@ -260,7 +260,7 @@ The filter removes nearly all saturation even before retraining. Tracking and ga
 
 ### Stage 2b result: `stage2_smooth` (2026-11-02), current best
 
-150M steps warm-started from `stage2_sym` with `--task walk_smooth`, on the g5. Evaluated with `evaluate.py` (64 episodes) and `replay_mujoco.py` (24 episodes).
+150M steps warm-started from `stage2_sym` with `--task walk_smooth`, on the g5. Archived in `simulation/policies/stage2_smooth/` (weights, normalizer, config). Evaluated with `evaluate.py` (64 episodes) and `replay_mujoco.py` (24 episodes).
 
 Torque, steady stepping, peak over substeps, `stage2_sym` → `stage2_smooth` (N m):
 
