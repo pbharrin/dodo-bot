@@ -1,4 +1,4 @@
-"""Dodo v5 stand / step-in-place environment for MuJoCo Playground (MJX or MJX-Warp).
+"""Dodo stand / step-in-place / walk environment (robot model v5 or v6) for MuJoCo Playground (MJX or MJX-Warp).
 
 Task: on each episode the robot is either told to STAND (both feet planted) or to
 STEP IN PLACE following a two-foot gait clock. The base-velocity command is zero
@@ -36,7 +36,17 @@ import numpy as np
 
 from mujoco_playground._src import mjx_env
 
-MODEL_PATH = Path(__file__).resolve().parents[1] / 'models' / 'dodo_v5.xml'
+MODELS_DIR = Path(__file__).resolve().parents[1] / 'models'
+# Robot model versions (simulation/models/README.md). A policy is tied to the
+# model it was trained on; runs saved before the 'model' key existed used v5.
+MODELS = {'v5': 'dodo_v5.xml', 'v6': 'dodo_v6.xml'}
+DEFAULT_MODEL = 'v6'
+
+
+def model_path(version: str) -> Path:
+    if version not in MODELS:
+        raise ValueError(f'unknown model {version!r}; known: {sorted(MODELS)}')
+    return MODELS_DIR / MODELS[version]
 FEET = ('left_foot', 'right_foot')
 NUM_JOINTS = 10
 # Left<->right mirror of one leg's joints (hip yaw, hip roll, hip pitch, knee, ankle):
@@ -66,6 +76,15 @@ SMOOTH_OVERRIDES = {
     'reward_config.scales.action_rate': -0.1,
 }
 
+# Stage 2c: tolerate an uncertain fore/aft centre of mass (battery, wiring, mass
+# estimates). +-5 cm on the torso body (~2.5 kg of 6.84 kg) moves the whole-body
+# CoM by about +-18 mm; the default +-2 cm gives only +-7 mm, and stage2_smooth
+# loses survival beyond ~-9 mm (training/README.md, "Hip offset sweep").
+# train_ppo.py --task walk_com --warm-start simulation/policies/stage2_smooth
+COM_OVERRIDES = {
+    'torso_com_range': [[-0.05, 0.05], [-0.02, 0.02], [-0.02, 0.02]],
+}
+
 
 def filter_alpha(cutoff_hz: float, dt: float) -> float:
     """Per-step gain of y += alpha * (x - y); 1.0 (no filtering) when cutoff_hz <= 0."""
@@ -76,6 +95,7 @@ def filter_alpha(cutoff_hz: float, dt: float) -> float:
 
 def default_config() -> config_dict.ConfigDict:
     return config_dict.create(
+        model=DEFAULT_MODEL,          # robot model version, see MODELS
         ctrl_dt=0.02,
         sim_dt=0.004,
         episode_length=1000,          # 20 s
@@ -103,6 +123,7 @@ def default_config() -> config_dict.ConfigDict:
         # --- sim-to-real ---
         action_delay_probability=0.5, # chance an episode uses one control-step delay
         encoder_offset=0.02,          # rad, per-episode calibration error in obs
+        torso_com_range=[[-0.02, 0.02], [-0.02, 0.02], [-0.02, 0.02]],  # m, torso CoM x/y/z (domain_randomize)
         noise_config=config_dict.create(
             level=1.0,
             scales=config_dict.create(
@@ -152,13 +173,13 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         self,
         config: Optional[config_dict.ConfigDict] = None,
         config_overrides: Optional[Dict[str, Union[str, int, list[Any]]]] = None,
-        xml_path: Path = MODEL_PATH,
+        xml_path: Optional[Path] = None,
     ):
         # Fresh config per instance: overrides are applied in place, so a shared
         # default would leak one env's overrides into the next.
         config = default_config() if config is None else config.copy_and_resolve_references()
         super().__init__(config, config_overrides)
-        self._xml_path = str(xml_path)
+        self._xml_path = str(xml_path if xml_path is not None else model_path(self._config.model))
         self._mj_model = mujoco.MjModel.from_xml_path(self._xml_path)
         self._mj_model.opt.timestep = self.sim_dt
         if self._config.solver_iterations is not None:
@@ -487,10 +508,16 @@ class DodoStepInPlace(mjx_env.MjxEnv):
 
 
 # ---------------------------------------------------------------------- randomization
-def domain_randomize(model: mjx.Model, rng: jax.Array):
-    """Per-world physical parameter randomization (vmapped over rng)."""
+def domain_randomize(model: mjx.Model, rng: jax.Array, torso_com_range=None):
+    """Per-world physical parameter randomization (vmapped over rng).
+
+    torso_com_range: [[lo, hi]] * 3 metres added to the torso body's CoM
+    (config key torso_com_range); default +-2 cm on each axis.
+    """
     FLOOR = 0
     TORSO = 1
+    com = jp.array(default_config().torso_com_range if torso_com_range is None else torso_com_range,
+                   dtype=jp.float32)
 
     @jax.vmap
     def rand(rng):
@@ -499,7 +526,7 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         friction = model.geom_friction.at[FLOOR, 0].set(u(ks[0], 0.4, 1.2))
         mass = model.body_mass * u(ks[1], 0.9, 1.1, (model.nbody,))
         mass = mass.at[TORSO].add(u(ks[2], -0.3, 0.8))            # battery / shell uncertainty
-        ipos = model.body_ipos.at[TORSO].add(u(ks[3], -0.02, 0.02, (3,)))
+        ipos = model.body_ipos.at[TORSO].add(u(ks[3], com[:, 0], com[:, 1], (3,)))
         armature = model.dof_armature.at[6:].multiply(u(ks[4], 0.7, 1.3, (NUM_JOINTS,)))
         damping = model.dof_damping.at[6:].multiply(u(ks[5], 0.5, 2.0, (NUM_JOINTS,)))
         frictionloss = model.dof_frictionloss.at[6:].multiply(u(ks[6], 0.5, 2.0, (NUM_JOINTS,)))

@@ -1,4 +1,4 @@
-"""CPU checks for the v5 model and training environment (MJX JAX backend).
+"""CPU checks for the robot models and training environment (MJX JAX backend).
 
     python -m unittest discover -s simulation/training -p test_dodo_env.py
 
@@ -36,6 +36,40 @@ class ModelTest(unittest.TestCase):
         for f in dodo_env.FEET:
             self.assertAlmostEqual(d.site(f).xpos[2], 0.0, delta=0.002)
         self.assertEqual(m.nu, 10)
+
+    def test_model_versions(self):
+        """v5 and v6 differ only in where the knee/ankle motors sit; old runs map to v5."""
+        self.assertEqual(ENV._config.model, dodo_env.DEFAULT_MODEL)
+        self.assertTrue(ENV.xml_path.endswith(dodo_env.MODELS[dodo_env.DEFAULT_MODEL]))
+        v5 = mujoco.MjModel.from_xml_path(str(dodo_env.model_path('v5')))
+        v6 = mujoco.MjModel.from_xml_path(str(dodo_env.model_path('v6')))
+        self.assertAlmostEqual(v5.body_subtreemass[1], v6.body_subtreemass[1], places=6)
+        self.assertEqual((v5.nq, v5.nu), (v6.nq, v6.nu))
+        thigh_len = float(-v6.body('left_shank').pos[2])
+        self.assertAlmostEqual(thigh_len + float(v6.geom('left_knee_module').pos[2]), 0.048, places=4)
+        self.assertAlmostEqual(thigh_len + float(v5.geom('left_knee_module').pos[2]), 0.091, places=4)
+        import evaluate
+        old = dodo_env.default_config().to_dict()
+        del old['model']
+        self.assertEqual(evaluate.saved_env_config(old).model, 'v5')
+        self.assertEqual(evaluate.saved_env_config(dodo_env.default_config().to_dict()).model,
+                         dodo_env.DEFAULT_MODEL)
+
+    def test_hip_offsets(self):
+        """v6 hip offsets: default reproduces dodo_v6.xml; offsets mirror and keep the pitch centre."""
+        sys.path.insert(0, str(dodo_env.MODELS_DIR))
+        import build_model_v6 as b
+        self.assertEqual(b.make_model(), dodo_env.model_path('v6').read_text())
+        xml = b.make_model_with(HIP_ROLL_OFFSET=(0.01, 0.02, -0.03), HIP_PITCH_OFFSET=(0.015, -0.02, -0.025))
+        self.assertEqual(b.HIP_ROLL_OFFSET, (0.0, 0.0, 0.0))                  # restored
+        m = mujoco.MjModel.from_xml_string(xml)
+        d = mujoco.MjData(m)
+        mujoco.mj_resetDataKeyframe(m, d, 0)
+        mujoco.mj_forward(m, d)
+        for side, s in (('left', 1), ('right', -1)):
+            np.testing.assert_allclose(d.xanchor[m.joint(f'{side}_hip_roll').id], [0.01, s * 0.12, 0.355], atol=1e-6)
+            np.testing.assert_allclose(d.xanchor[m.joint(f'{side}_hip_pitch').id], [0.025, s * 0.10, 0.33], atol=1e-6)
+            self.assertAlmostEqual(d.site(f'{side}_foot').xpos[2], 0.0, delta=0.002)
 
     def test_mjx_matches_mujoco_zero_action(self):
         """MJX and C MuJoCo agree on 1 s of passive standing."""
@@ -144,6 +178,16 @@ class EnvTest(unittest.TestCase):
         self.assertEqual(model.body_mass.shape[0], 4)
         self.assertEqual(model.actuator_forcerange.shape, (4, 10, 2))
         self.assertEqual(in_axes.body_mass, 0)
+        # Torso CoM randomization follows torso_com_range.
+        keys = jax.random.split(jax.random.PRNGKey(4), 256)
+        base = np.asarray(ENV.mjx_model.body_ipos[1])
+        model, _ = dodo_env.domain_randomize(ENV.mjx_model, keys,
+                                             torso_com_range=dodo_env.COM_OVERRIDES['torso_com_range'])
+        dx = np.asarray(model.body_ipos[:, 1]) - base
+        self.assertTrue(0.04 < np.abs(dx[:, 0]).max() <= 0.05)
+        self.assertTrue(np.abs(dx[:, 1:]).max() <= 0.02)
+        model, _ = dodo_env.domain_randomize(ENV.mjx_model, keys)
+        self.assertTrue(np.abs(np.asarray(model.body_ipos[:, 1]) - base).max() <= 0.02)
 
 
 

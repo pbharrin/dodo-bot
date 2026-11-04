@@ -11,6 +11,10 @@ Stage 2b (smoothed joint targets), starting from the stage-2 policy:
     python simulation/training/train_ppo.py --run-name stage2_smooth --task walk_smooth \
         --warm-start simulation/results/local/train/stage2_sym
 
+Stage 2c (wider torso CoM randomization, model v6), from the archived stage-2b policy:
+    python simulation/training/train_ppo.py --run-name stage2_com --task walk_com \
+        --warm-start simulation/policies/stage2_smooth
+
 CPU smoke test (tiny, minutes; checks the pipeline end to end, not learning):
     python simulation/training/train_ppo.py --impl jax --smoke
 
@@ -91,10 +95,11 @@ def main():
     ap.add_argument('--num-evals', type=int)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--no-randomization', action='store_true', help='disable domain randomization')
-    ap.add_argument('--task', choices=['step', 'walk', 'walk_smooth'], default='step',
+    ap.add_argument('--task', choices=['step', 'walk', 'walk_smooth', 'walk_com'], default='step',
                     help='step: stage 1 stand/step in place; walk: stage 2 velocity commands '
                          '(dodo_env.WALK_OVERRIDES); walk_smooth: walk + action low-pass '
-                         'filter (dodo_env.SMOOTH_OVERRIDES). --env-override is applied on top.')
+                         'filter (dodo_env.SMOOTH_OVERRIDES); walk_com: walk_smooth + wider torso '
+                         'CoM randomization (dodo_env.COM_OVERRIDES). --env-override is applied on top.')
     ap.add_argument('--restore', type=Path,
                     help='checkpoint directory to resume the SAME task from (exact Brax restore)')
     ap.add_argument('--warm-start', type=Path, metavar='RUN_DIR',
@@ -117,10 +122,12 @@ def main():
     if args.restore and args.warm_start:
         ap.error('use either --restore or --warm-start, not both')
     overrides = {'impl': args.impl}
-    if args.task in ('walk', 'walk_smooth'):
+    if args.task in ('walk', 'walk_smooth', 'walk_com'):
         overrides.update(dodo_env.WALK_OVERRIDES)
-    if args.task == 'walk_smooth':
+    if args.task in ('walk_smooth', 'walk_com'):
         overrides.update(dodo_env.SMOOTH_OVERRIDES)
+    if args.task == 'walk_com':
+        overrides.update(dodo_env.COM_OVERRIDES)
     for item in args.env_override:
         key, val = item.split('=', 1)
         overrides[key] = json.loads(val)
@@ -161,7 +168,8 @@ def main():
         ppo.train,
         **params,
         network_factory=functools.partial(ppo_networks.make_ppo_networks, **net),
-        randomization_fn=None if args.no_randomization else dodo_env.domain_randomize,
+        randomization_fn=None if args.no_randomization else functools.partial(
+            dodo_env.domain_randomize, torso_com_range=env._config.torso_com_range),
         wrap_env_fn=wrapper.wrap_for_brax_training,
         seed=args.seed,
         save_checkpoint_path=logdir / 'checkpoints',
