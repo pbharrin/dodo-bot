@@ -8,7 +8,7 @@ Date: 2026-10-26. Status: proposed baseline; dimensions and ratings below are no
 | --- | --- | --- |
 | Torso-top height | 500 mm from floor in nominal standing pose | User requirement |
 | Appearance | Dodo-like rounded torso and folded bird legs | User requirement |
-| Joint count | 5 actuators per leg; 10 motors total, including two hip pitch/yaw motors | User correction; detailed transmission arrangement pending |
+| Joint count | 5 actuators per leg; 10 motors total; hip pitch and yaw each driven by its own motor (no differential) | User correction; coupling resolved 2026-11-04 |
 | Motors | Eaglepower 8308 BLDC, 90 KV | Model identified by user from reference BOM; dimensions/ratings pending |
 | Transmission | Approximately 8:1 rope capstan | User requirement |
 | Motor control | Makerbase MKS XDrive Mini preferred candidate | User proposes lower-cost ODrive v3.6-based alternative; exact board/firmware to qualify |
@@ -22,7 +22,7 @@ The 24.6-second reference video shows a compact biped with folded legs, broad fe
 
 ## 2. Leg architecture
 
-Use five actuators per leg, ten total. The user confirms that the reference has two motors for hip pitch/yaw. The working joint allocation below adds hip yaw to the previous hip roll, hip pitch, knee pitch and ankle/hock pitch layout. This allocation preserves the three in-plane joints; it does not add a second hip pitch joint. Verify the hip axis order and whether the pitch/yaw motors act independently or through a coupled transmission before freezing CAD or simulation kinematics:
+Use five actuators per leg, ten total. The user confirms that the reference has two motors for hip pitch/yaw. The working joint allocation below adds hip yaw to the previous hip roll, hip pitch, knee pitch and ankle/hock pitch layout. This allocation preserves the three in-plane joints; it does not add a second hip pitch joint. Hip pitch and yaw are driven independently, one motor each; an earlier reading that they were coupled was a misunderstanding (user, 2026-11-04). Verify the hip axis order and the offsets between the hip axes before freezing CAD or simulation kinematics:
 
 | Joint | Axis in neutral body frame | Function |
 | --- | --- | --- |
@@ -32,11 +32,11 @@ Use five actuators per leg, ten total. The user confirms that the reference has 
 | Knee pitch | Local Y after the hip rotations | Changes reach and crouch |
 | Ankle/hock pitch | Local Y after the hip rotations | Controls distal-foot pitch |
 
-Body convention: X forward, Y left, Z up. Name joints left/right consistently and verify encoder signs on hardware. Hip roll and hip yaw are separate functions. Yaw is now included for heading control; no ankle-roll actuator is planned. Turning and sideways balance still require simulation validation. If hip pitch/yaw uses a differential, derive motor-to-joint position, velocity and torque mappings and enforce the coupled motor limits rather than assuming one motor command equals one joint command.
+Body convention: X forward, Y left, Z up. Name joints left/right consistently and verify encoder signs on hardware. Hip roll and hip yaw are separate functions. Yaw is now included for heading control; no ankle-roll actuator is planned. Turning and sideways balance still require simulation validation. Each joint, including hip pitch and yaw, has its own motor and its own torque limit.
 
 Bird anatomy needs care: the conspicuous rearward bend is the hock/ankle; the knee is higher and bends forward. For version one, explore a short upper leg partly concealed in the body, a rearward-sloping shank, and an elongated rigid distal-foot assembly ending in a broad sole. That keeps three independent pitch joints without requiring a fourth powered toe joint. The full foot geometry must allow a useful flat contact pose.
 
-Use direct joint-mounted actuators where appropriate, while leaving the hip pitch/yaw transmission topology open until inspected. Compare a remotely driven distal joint only if ankle mass or packaging is unacceptable; remote cables/linkages add compliance and coupling that must be modeled. Keep the battery and as many heavy components as practical near the pelvis. Make the head, beak, and tail lightweight and passive initially.
+Use direct joint-mounted actuators where appropriate, including independent hip pitch and yaw drives. Compare a remotely driven distal joint only if ankle mass or packaging is unacceptable; remote cables/linkages add compliance and coupling that must be modeled. Keep the battery and as many heavy components as practical near the pelvis. Make the head, beak, and tail lightweight and passive initially.
 
 ### Starting CAD envelope, not frozen dimensions
 
@@ -95,7 +95,7 @@ Capstan load example: 10 N m on a 40 mm effective output radius requires a tensi
 | 1 | Parametric skeleton and hardware envelopes | Joint centers/axes, folded stance, 500 mm torso top, motor clearances, motion ranges, center of mass |
 | 2 | Actuator cartridge | Motor mount, small/large drums, rope anchors, adjustable tensioner, paired output-bearing supports, shaft/hub, encoder mounts, stops and guard |
 | 3 | Bench test fixture | Rigid mount, known-length torque arm/load-cell interface, travel measurement, temperature sensing, guarded rope path |
-| 4 | Hip roll support and pitch/yaw assembly | Three hip rotation functions; verify axis order, pitch/yaw coupling, short offsets, supported load path, service access and cable flex |
+| 4 | Hip roll support and pitch/yaw assembly | Three independently driven hip rotations; verify axis order, short offsets (keep the roll axes from moving outboard: see simulation/training/README.md, "Hip offset sweep"), supported load path, service access and cable flex |
 | 5 | One complete leg | Upper/shank links, hock mount, broad foot, replaceable TPU sole, contact sensor mount, accessible tensioners |
 | 6 | Pelvis and torso frame | Both hips, battery adjustment, electronics cooling, power distribution, IMU datum, lifting/tether points |
 | 7 | Cosmetic shell | Removable dodo body/head/tail after balance and mass distribution work |
@@ -173,7 +173,7 @@ Use an independent hardware stop path and controller watchdogs; demonstrate stal
 
 ## 7. Simulation and build milestones
 
-1. **Requirements and envelopes:** verify selected motor geometry and ratings, inventory masses for ten actuators, resolve the hip pitch/yaw transmission and axis order, create the five-joint-per-leg kinematic skeleton, and check 120-degree travel feasibility. Exit: a collision-checked nominal stance and candidate step cycle at 500 mm torso height.
+1. **Requirements and envelopes:** verify selected motor geometry and ratings, inventory masses for ten actuators, confirm the hip axis order and offsets, create the five-joint-per-leg kinematic skeleton, and check 120-degree travel feasibility. Exit: a collision-checked nominal stance and candidate step cycle at 500 mm torso height.
 2. **One actuator:** characterize output torque/current, backdrive behavior, ratio, reversal lost motion, thermal settling, usable travel, and repeated-cycle rope tension. Exit: documented continuous/peak limits and module mass sufficient for a plausible whole-robot budget.
 3. **One leg on a fixture:** verify encoder signs, hard/soft limits, foot trajectories, contact detection, and load-bearing motion. Exit: repeatable stance/swing cycles under representative load without excessive heat, slip, or structural deformation.
 4. **Whole robot in simulation:** use measured link mass/inertia, actuator dynamics, torque/speed limits, contact geometry, latency, and rope compliance. Evaluate standing and stepping; randomize uncertain friction, mass, delays and actuation. Exit: robust policy across the intended operating range with realistic limits.
@@ -188,7 +188,7 @@ The user identified the reference BOM motor as Eaglepower 8308 on 2026-10-26; re
 
 ## 9. Source provenance
 
-- User correction: the reference has five actuators per leg, including two motors for hip pitch/yaw. Ten total actuators supersedes the earlier eight-actuator interpretation. Detailed hip coupling has not been independently established from the video.
+- User correction: the reference has five actuators per leg, including two motors for hip pitch/yaw. Ten total actuators supersedes the earlier eight-actuator interpretation. Hip pitch and yaw are independent, not coupled (user, 2026-11-04).
 
 
 - Makerbase product page and Mini firmware inventory reviewed for the controller change. Firmware repository tree observed at `e15782976ae93d42b1f0648ceec96503141a343b`; the directory includes `MKS_ODrive_MINI_0_5_1_20250326.bin` and `.hex`. Firmware has not been flashed or bench-tested.

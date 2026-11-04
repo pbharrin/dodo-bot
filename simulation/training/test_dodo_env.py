@@ -55,6 +55,22 @@ class ModelTest(unittest.TestCase):
         self.assertEqual(evaluate.saved_env_config(dodo_env.default_config().to_dict()).model,
                          dodo_env.DEFAULT_MODEL)
 
+    def test_hip_offsets(self):
+        """v6 hip offsets: default reproduces dodo_v6.xml; offsets mirror and keep the pitch centre."""
+        sys.path.insert(0, str(dodo_env.MODELS_DIR))
+        import build_model_v6 as b
+        self.assertEqual(b.make_model(), dodo_env.model_path('v6').read_text())
+        xml = b.make_model_with(HIP_ROLL_OFFSET=(0.01, 0.02, -0.03), HIP_PITCH_OFFSET=(0.015, -0.02, -0.025))
+        self.assertEqual(b.HIP_ROLL_OFFSET, (0.0, 0.0, 0.0))                  # restored
+        m = mujoco.MjModel.from_xml_string(xml)
+        d = mujoco.MjData(m)
+        mujoco.mj_resetDataKeyframe(m, d, 0)
+        mujoco.mj_forward(m, d)
+        for side, s in (('left', 1), ('right', -1)):
+            np.testing.assert_allclose(d.xanchor[m.joint(f'{side}_hip_roll').id], [0.01, s * 0.12, 0.355], atol=1e-6)
+            np.testing.assert_allclose(d.xanchor[m.joint(f'{side}_hip_pitch').id], [0.025, s * 0.10, 0.33], atol=1e-6)
+            self.assertAlmostEqual(d.site(f'{side}_foot').xpos[2], 0.0, delta=0.002)
+
     def test_mjx_matches_mujoco_zero_action(self):
         """MJX and C MuJoCo agree on 1 s of passive standing."""
         m = ENV.mj_model

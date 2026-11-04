@@ -12,6 +12,7 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 | `render_backend.py` | Picks EGL for headless video, or falls back to no rendering if the GL libraries are missing |
 | `replay_mujoco.py` | Replays a policy in plain C MuJoCo under harsher conditions: full solver, smaller timestep, latency, lower torque limits |
 | `warm_start.py` | Starts stage 2 from the stage-1 policy, adapting the command inputs |
+| `hip_offset_sweep.py` | Runs a fixed policy on v6 variants with hip axis offsets (CAD packaging sensitivity) |
 | `test_dodo_env.py` | Pre-flight checks: model mass/geometry, MJX vs MuJoCo, passive standing, gait clock, randomization |
 
 ## Status
@@ -200,6 +201,52 @@ Zero-shot check: `stage2_smooth`, trained on v5, run unchanged on each model. Bo
 Every joint's torque is within ±3% and saturation is unchanged. At a 1.0–1.5 Hz gait the swing accelerations are slow, so the extra inertia adds little torque compared with single-support gravity load, and the domain randomization (link masses, armature) already covers a change this size. The no-fall result at 40 ms on v6 is within the noise of one fall in 24 episodes.
 
 Retraining on v6 isn't needed for this result. Retrain once milestone-2 bench data changes the estimates (module mass, rotor inertia, gains, torque limit), warm-starting from `simulation/policies/stage2_smooth`. That avoids a retrain for each estimate change.
+
+## Hip offset sweep (2026-11-04)
+
+v6 puts the hip yaw, roll and pitch axes at one point; real bearings and drums need offsets. `hip_offset_sweep.py` builds v6 variants with offsets and runs `stage2_smooth` on each, unchanged, in C MuJoCo (the same 24 episodes, full solver and "realistic" conditions; about 4 min on a Mac, no GPU needed). The policy isn't retrained, so this measures what an offset costs before the policy adapts. Physics-driven costs, such as the hip-roll moment, remain after retraining; posture and foot-placement costs mostly don't. Hip pitch and yaw are independently driven, so there is no coupling to model.
+
+Offsets in mm (x forward, y outward, z up); roll = roll axis relative to yaw, pitch = pitch centre relative to roll. Torque = peak over substeps, p99, worse of left/right, full solver. Static moment = total weight × lateral distance from the roll axis to the CoM.
+
+| Variant | Roll / pitch offset | Static hip-roll moment | Survival | Speed err (m/s) | Hip roll p95 / p99 | Hip pitch p99 | Knee p99 | Ankle p99 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| baseline | 0 / 0 | 6.7 | 100% | 0.067 | 5.8 / 6.6 | 3.5 | 6.7 | 7.7 |
+| roll axis in 20 | y −20 / y +20 | 5.4 | 100% | 0.070 | 5.0 / 5.7 | 3.5 | 6.9 | 7.9 |
+| roll axis in 10 | y −10 / y +10 | 6.0 | 100% | 0.068 | 5.4 / 6.1 | 3.5 | 6.8 | 7.8 |
+| roll axis out 10 | y +10 / y −10 | 7.4 | 100% | 0.067 | 6.3 / 7.1 | 3.5 | 6.6 | 7.7 |
+| roll axis out 20 | y +20 / y −20 | 8.1 | 100% | 0.068 | 6.8 / 7.8 | 3.5 | 6.6 | 7.7 |
+| roll axis out 30 | y +30 / y −30 | 8.7 | 100% | 0.069 | 7.3 / 8.3 | 3.6 | 6.6 | 7.6 |
+| pitch out 20 (wider stance) | 0 / y +20 | 6.7 | 100% | 0.077 | 6.0 / 6.8 | 3.7 | 6.9 | 7.7 |
+| pitch out 40 | 0 / y +40 | 6.7 | 100% | 0.091 | 6.0 / 6.9 | 3.8 | 7.2 | 8.1 |
+| roll below yaw 20 | z −20 / 0 | 6.7 | 100% | 0.066 | 5.8 / 6.5 | 3.5 | 6.7 | 7.8 |
+| roll below yaw 40 | z −40 / 0 | 6.7 | 100% | 0.065 | 5.7 / 6.5 | 3.5 | 6.7 | 7.8 |
+| pitch below roll 20 | 0 / z −20 | 6.7 | 100% | 0.064 | 5.9 / 6.7 | 3.5 | 6.7 | 7.8 |
+| pitch below roll 40 | 0 / z −40 | 6.7 | 100% | 0.063 | 6.1 / 6.9 | 3.5 | 6.7 | 7.8 |
+| **pitch forward 20** | 0 / x +20 | 6.7 | **67%** | 0.076 | 6.0 / 6.8 | 4.1 | 6.3 | 7.4 |
+| pitch back 20 | 0 / x −20 | 6.7 | 100% | 0.068 | 5.7 / 6.5 | 3.2 | 7.1 | 8.3 |
+| packaged example | x0 y+10 z−30 / x0 y+15 z−25 | 7.4 | 100% | 0.077 | 6.6 / 7.4 | 3.7 | 6.9 | 7.8 |
+
+Findings, for CAD:
+
+- **Roll-axis spacing is the expensive dimension.** Each 10 mm the roll axes move outboard adds about 0.6 Nm of hip-roll p99 torque, matching the static estimate (0.67 Nm per 10 mm). At 20 mm outboard the "realistic" condition (8 Nm limit) reaches its limit. Moving the roll axes inboard saves the same amount. Keep them at or inside the 100 mm yaw-axis position.
+- **Vertical stacking is nearly free.** Up to 40 mm between yaw, roll and pitch costs at most 0.3 Nm at hip roll and nothing elsewhere. Stack the hip vertically rather than sideways.
+- **A wider stance (pitch centre outboard) costs tracking, not torque:** speed error +15% at 20 mm and +35% at 40 mm, before retraining. A retrain should recover most of it.
+- **Fore/aft offsets act through the centre of mass,** which leads to the next finding.
+
+### Policy sensitivity to the fore/aft centre of mass
+
+Moving the legs 20 mm forward moves the whole-body CoM 12.5 mm backward relative to the feet, and survival drops to 67%. Shifting only the torso mass reproduces it (full solver, 24 episodes, no hip offsets):
+
+| Whole-body CoM shift | CoM relative to sole centre | Survival | Speed err (m/s) |
+| --- | ---: | ---: | ---: |
+| 0 (baseline) | −23 mm | 100% | 0.067 |
+| −6 mm (backward) | −29 mm | 96% | 0.068 |
+| −9 mm | −32 mm | 92% | 0.071 |
+| −12 mm | −35 mm | 75% | 0.075 |
+| −15 mm | −38 mm | 62% | 0.080 |
+| +12 mm (forward) | −11 mm | 100% | 0.069 |
+
+This is a policy problem, not a physics limit: the CoM stays 40+ mm inside the foot's rear edge. Training randomizes the torso CoM by ±2 cm, which moves the whole-body CoM only about ±7 mm (the torso body is 2.5 of 6.84 kg). Backward shifts beyond that are outside what the policy has seen. **The real robot's CoM won't be known that precisely** (battery position, wiring, shell, the estimated masses), so this matters for hardware regardless of the hip design. The fix is a fine-tune with wider CoM randomization; then rerun this sweep.
 
 ## C MuJoCo replay check
 

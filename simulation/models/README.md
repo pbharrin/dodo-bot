@@ -28,6 +28,8 @@ v5's placement would need a long-span rope drive with about twice the free rope 
 
 Each joint also carries 0.0096 kg m² of reflected rotor inertia, so the effective increase at the hip is about 25%. In practice the effect is small: `stage2_smooth` (trained on v5) runs on v6 with torques within ±3% per joint (see `training/README.md`, "Model v6").
 
+Hip axis offsets are parameters of the v6 generator: `HIP_ROLL_OFFSET` (roll axis relative to the yaw axis) and `HIP_PITCH_OFFSET` (pitch centre relative to the roll axis), in metres, with x forward, y outward and z up, mirrored for the right leg. The pitch centre stays at 330 mm, so vertical offsets move the yaw and roll axes up into the torso. Both default to zero (coincident axes, as in v5), which produces the committed `dodo_v6.xml`. `make_model_with(HIP_ROLL_OFFSET=..., ...)` builds variants without editing the file; `training/hip_offset_sweep.py` uses it. Hip pitch and yaw are independently driven, so no coupling is modelled.
+
 CAD check: the 83 mm motor can is larger than the 48 mm centre distance, so in side view the motor overlaps the joint. The child link must clear it through the full travel, so the motor and the output drum probably need to sit in different planes.
 
 ## v5 changes from v4

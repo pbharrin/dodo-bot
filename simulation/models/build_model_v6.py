@@ -13,6 +13,10 @@ only in where the knee and ankle motors sit:
   is mounted on the parent link one drum centre distance above it,
   OUTPUT_DRUM_RADIUS + INPUT_DRUM_RADIUS + ROPE_CLEARANCE ~ 48 mm.
   Swing-leg inertia about the hip rises ~30% (excluding armature).
+* Hip axis offsets are parameters (HIP_ROLL_OFFSET, HIP_PITCH_OFFSET), so CAD
+  packaging can be put back into simulation. They default to zero, i.e. the
+  coincident yaw -> roll -> pitch centre of v5. Hip pitch and yaw are driven
+  independently (no differential).
 
 v5 differed from v4 (which is kept unchanged for the classical experiments):
 
@@ -43,7 +47,14 @@ OUT = HERE / 'dodo_v6.xml'
 # ---------------------------------------------------------------- geometry (m)
 TORSO_TOP_Z = 0.500            # requirement
 HIP_Z = 0.330                  # plan: hip pitch centre ~330 mm above floor
-HIP_OFFSET_Y = 0.100           # plan: 180-220 mm hip spacing -> 200 mm
+HIP_OFFSET_Y = 0.100           # plan: 180-220 mm hip spacing -> 200 mm (hip yaw axes)
+# Hip chain yaw -> roll -> pitch, each joint driven by its own motor. Offsets in
+# metres, (x forward, y OUTWARD from the midline, z up), mirrored for the right
+# leg: roll axis relative to the yaw axis, pitch centre relative to the roll
+# axis. The hip pitch centre stays at HIP_Z (leg length and stance height are
+# unchanged); vertical offsets move the yaw/roll axes up into the torso.
+HIP_ROLL_OFFSET = (0.0, 0.0, 0.0)
+HIP_PITCH_OFFSET = (0.0, 0.0, 0.0)
 TORSO_HALF = (0.140, 0.120, 0.100)   # plan bounding box 280 x 240 x 200 mm
 THIGH_LENGTH = 0.130           # plan: upper leg 120-150 mm
 SHANK_LENGTH = 0.147           # plan: shank 140-170 mm (solved for HIP_Z)
@@ -124,19 +135,36 @@ def motor_geom(name: str, pos: str, axis: str = 'y') -> str:
             f'mass="{ACTUATOR_MODULE_MASS}" rgba="0.25 0.25 0.28 1"/>')
 
 
+def _vec(v) -> str:
+    return ' '.join(f'{x:.6g}' for x in v)
+
+
+def hip_frames(side: float):
+    """Body positions of hip_yaw (in torso), hip_roll (in yaw), thigh (in roll)."""
+    rx, ry, rz = HIP_ROLL_OFFSET
+    px, py, pz = HIP_PITCH_OFFSET
+    yaw = (0.0, side * HIP_OFFSET_Y, HIP_OFFSET_Z - rz - pz)
+    return yaw, (rx, side * ry, rz), (px, side * py, pz)
+
+
 def leg(p: str, y: float) -> str:
     knee_z = -(THIGH_LENGTH - CAPSTAN_CENTER_DISTANCE)    # motor above the knee
     ankle_z = -(SHANK_LENGTH - CAPSTAN_CENTER_DISTANCE)   # motor above the ankle
     sole_z = -HOCK_TO_SOLE + FOOT_THICKNESS / 2
     r = JOINT_RANGE_DEG
+    side = 1.0 if y > 0 else -1.0
+    yaw_pos, roll_pos, pitch_pos = hip_frames(side)
+    yaw_attr = f'{yaw_pos[0]:.6g} {y} {yaw_pos[2]:.6f}'
+    roll_attr = '' if not any(HIP_ROLL_OFFSET) else f' pos="{_vec(roll_pos)}"'
+    pitch_attr = '' if not any(HIP_PITCH_OFFSET) else f' pos="{_vec(pitch_pos)}"'
     return f'''
-      <body name="{p}_hip_yaw" pos="0 {y} {HIP_OFFSET_Z:.6f}">
+      <body name="{p}_hip_yaw" pos="{yaw_attr}">
         <joint name="{p}_hip_yaw" axis="0 0 1" range="{r['hip_yaw'][0]} {r['hip_yaw'][1]}"/>
         {motor_geom(f'{p}_hip_roll_module', '0 0 0.03', 'x')}
-        <body name="{p}_hip_roll">
+        <body name="{p}_hip_roll"{roll_attr}>
           <joint name="{p}_hip_roll" axis="1 0 0" range="{r['hip_roll'][0]} {r['hip_roll'][1]}"/>
           {motor_geom(f'{p}_hip_pitch_module', f'0 {0.035 if y > 0 else -0.035} 0', 'y')}
-          <body name="{p}_thigh" quat="{quat_y(HIP_PITCH_DEG)}">
+          <body name="{p}_thigh"{pitch_attr} quat="{quat_y(HIP_PITCH_DEG)}">
             <joint name="{p}_hip_pitch" axis="0 1 0" range="{r['hip_pitch'][0]} {r['hip_pitch'][1]}"/>
             <geom name="{p}_thigh_geom" class="visual" type="capsule" fromto="0 0 0 0 0 -{THIGH_LENGTH}" size="0.020" mass="{THIGH_LINK_MASS}" rgba="0.78 0.56 0.28 1"/>
             {motor_geom(f'{p}_knee_module', f'0 0 {knee_z:.6f}', 'y')}
@@ -224,6 +252,21 @@ def make_model() -> str:
 '''
 
 
+def make_model_with(**params) -> str:
+    """make_model() with module parameters temporarily replaced, e.g.
+    make_model_with(HIP_ROLL_OFFSET=(0, 0.02, 0)). Used by parameter sweeps."""
+    g = globals()
+    unknown = [k for k in params if k not in g or k.startswith('_')]
+    if unknown:
+        raise KeyError(f'unknown model parameters: {unknown}')
+    saved = {k: g[k] for k in params}
+    g.update(params)
+    try:
+        return make_model()
+    finally:
+        g.update(saved)
+
+
 def report() -> None:
     import mujoco
     m = mujoco.MjModel.from_xml_path(str(OUT))
@@ -242,8 +285,10 @@ def report() -> None:
           f'[{lf[0] - FOOT_LENGTH/2:+.3f}, {lf[0] + FOOT_LENGTH/2:+.3f}]')
     print(f'Armature               {ARMATURE:.4f} kg m^2 per joint')
     print(f'Capstan centre distance {CAPSTAN_CENTER_DISTANCE * 1000:.1f} mm (knee/ankle motor above joint)')
-    print(f'Static single-support hip-roll moment ~ m g (hip_y) = '
-          f'{total * 9.81 * HIP_OFFSET_Y:.1f} N m (limit {TORQUE_LIMIT})')
+    print(f'Hip offsets (x, y out, z) roll from yaw {HIP_ROLL_OFFSET}, pitch from roll {HIP_PITCH_OFFSET} m')
+    roll_y = HIP_OFFSET_Y + HIP_ROLL_OFFSET[1]
+    print(f'Static single-support hip-roll moment ~ m g (roll axis y {roll_y * 1000:.0f} mm) = '
+          f'{total * 9.81 * roll_y:.1f} N m (limit {TORQUE_LIMIT})')
 
 
 if __name__ == '__main__':
