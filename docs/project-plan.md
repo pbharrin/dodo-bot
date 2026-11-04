@@ -186,6 +186,23 @@ Simple analytical/IK motions come before learned walking. Preserve identical joi
 
 The user identified the reference BOM motor as Eaglepower 8308 on 2026-10-26; retain the specified 90 KV winding. Highest priority is now verifying its mounting drawing, dimensions, mass, and electrical/thermal ratings against the reference assembly or manufacturer documentation. Next: whole-robot target mass, desired initial walking speed, runtime, exact Mini hardware/firmware revision, intended print material, and CAD authoring tool. Until specified, assume slow indoor walking, passive cosmetic head/tail, no payload, and defer the battery purchase.
 
+### Simulation-derived design constraints
+
+These come from model v6 and the `stage2_com` policy (2026-11-04). Masses and actuator properties are still estimates, so treat the numbers as guidance and recheck them once parts are weighed. Torques are at the joint, peak p99 while walking with pushes.
+
+1. **Hip roll axes at or inboard of the yaw axes** (100 mm from the midline). Each 10 mm outboard adds about 0.6 Nm of hip-roll torque. At 20 mm outboard, hip roll reaches an 8 Nm actuator limit. Evidence: [hip offset sweep](../simulation/training/README.md#hip-offset-sweep-2026-11-04), [rerun with `stage2_com`](../simulation/training/README.md#rerun-with-stage2_com).
+2. **Stack hip offsets vertically, not sideways.** Up to 40 mm between the yaw, roll and pitch axes costs at most about 0.4 Nm. Evidence: same sweep.
+3. **Keep the stance (hip pitch centres) at about 200 mm.** A wider stance doesn't add torque but costs walking accuracy: +15% speed error at 20 mm per side and +35% at 40 mm, before retraining. Evidence: same sweep.
+4. **The fore/aft leg position is free within ±20 mm.** It only shifts about 0.5 Nm between hip pitch (legs forward) and knee/ankle (legs back). Evidence: [rerun with `stage2_com`](../simulation/training/README.md#rerun-with-stage2_com).
+5. **Whole-body centre of mass within 12 mm behind to 20 mm ahead of the v6 estimate.** That estimate is 23 mm behind the sole centre. Survival is 96% at 15 mm back and 75% at 20 mm back. Prefer erring forward, for example through battery placement, or lengthen the heel. Measure the assembled robot's centre of mass, which balancing on an edge gives to about ±5 mm, then update the model and retrain. Evidence: [stage 2c result](../simulation/training/README.md#stage-2c-result-stage2_com-current-best), [CoM sensitivity](../simulation/training/README.md#policy-sensitivity-to-the-foreaft-centre-of-mass).
+6. **Knee and ankle: integrated capstan cartridge, motor 48 mm above the joint** (40 mm output drum, 5 mm input drum, 3 mm clearance). The 83 mm motor can overlaps the joint in side view, so the motor and output drum probably need different planes, and the child link must clear the motor through its full travel. Evidence: [v6 changes from v5](../simulation/models/README.md#v6-changes-from-v5).
+7. **Joint torque:**
+   - About 8 Nm for knee, ankle and hip roll.
+   - About 4 Nm for hip pitch and yaw.
+
+   With an 8 Nm limit everywhere, the actuators are at their limit 0.22% of the time. At 6 Nm that rises to 2.3%, and walking still survives. Evidence: [stage 2c result](../simulation/training/README.md#stage-2c-result-stage2_com-current-best), [C MuJoCo replay check](../simulation/training/README.md#c-mujoco-replay-check).
+8. **Control path latency at or under 20 ms**, from sensor sample to new target active at the XDrive. The UNO Q must run the policy's 6 Hz action filter (α = 0.53 at 50 Hz). At 40 ms, walking survives but yaw-rate error almost doubles (0.051 → 0.097 rad/s). Evidence: [C MuJoCo replay check](../simulation/training/README.md#c-mujoco-replay-check), [stage 2b action filter](../simulation/training/README.md#stage-2b-action-low-pass-filter), [archived policy interface](../simulation/policies/README.md).
+
 ## 9. Source provenance
 
 - User correction: the reference has five actuators per leg, including two motors for hip pitch/yaw. Ten total actuators supersedes the earlier eight-actuator interpretation. Hip pitch and yaw are independent, not coupled (user, 2026-11-04).

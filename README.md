@@ -4,9 +4,11 @@ A bird-inspired, 3D-printed biped with the top of its torso **500 mm above the g
 
  ![Stage 1: stepping in place with pushes](docs/media/stage1_step.gif)
 
+ ![Stage 2c: walking, turning and sidestepping with pushes (stage2_com policy, model v6)](docs/media/stage2_com.gif)
+
 ## Design baseline
 
-- **Five actuators per leg, ten total:** hip roll, hip pitch, hip yaw, knee pitch, and ankle/hock pitch. The user confirms two motors for hip pitch/yaw; their transmission arrangement remains to be verified.
+- **Five actuators per leg, ten total:** hip roll, hip pitch, hip yaw, knee pitch, and ankle/hock pitch. Hip pitch and yaw each have their own motor and are driven independently (no differential coupling).
 - Eaglepower **8308, 90 KV BLDC** motors; model identified by the user from the reference BOM. Mounting dimensions and electrical/thermal limits remain to be verified.
 - Rope capstan reductions targeting approximately **8:1**.
 - **Makerbase MKS XDrive Mini is the preferred motor-controller candidate**, replacing the proposed S1 for cost/availability reasons. Qualify its board-specific legacy firmware, CAN behavior, encoder integration and thermal performance on one actuator first.
