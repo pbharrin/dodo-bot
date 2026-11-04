@@ -481,9 +481,21 @@ So, as expected, the policy learned to stand and absorb pushes first. Stepping h
 
 ## GPU machine setup
 
-Tested on a **g5.xlarge** (1 × NVIDIA A10G 24 GB, 4 vCPU, 16 GiB RAM), Python 3.14. A g6e.xlarge (1 × L40S 48 GB, 32 GiB RAM) should be faster. 4 vCPUs are enough because the simulation runs on the GPU. If the GPU runs out of memory, use `--num-envs 4096`.
+Use a **g6e.xlarge** (1 × NVIDIA L40S 48 GB, 4 vCPU, 32 GiB RAM) from 2026-11-04. Every policy through `stage2_com` was trained on a **g5.xlarge** (1 × A10G 24 GB, 4 vCPU, 16 GiB RAM), Python 3.14. The setup below is the same for both: same AMI, driver and `jax[cuda12]`. The L40S (Ada) is supported by the 580 driver and CUDA 12. 4 vCPUs are enough because the simulation runs on the GPU.
 
-Measured on the g5.xlarge: about 35k env steps/s with 8192 envs (10M steps in 283 s plus 46 s of JIT), so the default 150M-step run takes about 70 min.
+| | g5.xlarge (measured) | g6e.xlarge (not yet measured) |
+| --- | --- | --- |
+| GPU | A10G, 24 GB | L40S, 48 GB |
+| 10M-step trial | 283 s + 46 s JIT (about 35k steps/s, warm-up included) | |
+| 150M-step run, 8192 envs | about 41 min (about 62k steps/s) | |
+
+On the first g6e run, record the trial's throughput and the full run's wall time here. Keep `--num-envs 8192` (the default) even though the L40S has the memory for more. The archived policies were trained with it, and the number of envs changes the PPO batch, so changing it is a hyperparameter change, not just a speed-up. If a GPU runs out of memory, use `--num-envs 4096`.
+
+On a new instance, check that you got the L40S and that JAX sees it:
+
+```bash
+nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv   # expect NVIDIA L40S, about 46,000 MiB
+```
 
 ### Recommended: AWS Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04)
 
@@ -530,7 +542,7 @@ python -m unittest discover -s simulation/training -p test_dodo_env.py
 DODO_TEST_IMPL=warp python -m unittest discover -s simulation/training -p test_dodo_env.py
 ```
 
-Short GPU trial (about 10M steps, ~5 min on a g5) to check throughput and that reward climbs:
+Short GPU trial (about 10M steps, ~5 min on a g5, likely less on a g6e) to check throughput and that reward climbs:
 
 ```bash
 python simulation/training/train_ppo.py --run-name warp_trial --num-timesteps 10000000 --num-evals 5
