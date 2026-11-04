@@ -312,6 +312,8 @@ def saved_env_config(saved: dict):
             else:
                 yield f'{prefix}{k}', v
     cfg.update_from_flattened_dict(dict(flat(saved)))
+    if 'model' not in saved:
+        cfg.model = 'v5'          # runs saved before model versions existed were all v5
     return cfg
 
 

@@ -1,4 +1,4 @@
-"""CPU checks for the v5 model and training environment (MJX JAX backend).
+"""CPU checks for the robot models and training environment (MJX JAX backend).
 
     python -m unittest discover -s simulation/training -p test_dodo_env.py
 
@@ -36,6 +36,24 @@ class ModelTest(unittest.TestCase):
         for f in dodo_env.FEET:
             self.assertAlmostEqual(d.site(f).xpos[2], 0.0, delta=0.002)
         self.assertEqual(m.nu, 10)
+
+    def test_model_versions(self):
+        """v5 and v6 differ only in where the knee/ankle motors sit; old runs map to v5."""
+        self.assertEqual(ENV._config.model, dodo_env.DEFAULT_MODEL)
+        self.assertTrue(ENV.xml_path.endswith(dodo_env.MODELS[dodo_env.DEFAULT_MODEL]))
+        v5 = mujoco.MjModel.from_xml_path(str(dodo_env.model_path('v5')))
+        v6 = mujoco.MjModel.from_xml_path(str(dodo_env.model_path('v6')))
+        self.assertAlmostEqual(v5.body_subtreemass[1], v6.body_subtreemass[1], places=6)
+        self.assertEqual((v5.nq, v5.nu), (v6.nq, v6.nu))
+        thigh_len = float(-v6.body('left_shank').pos[2])
+        self.assertAlmostEqual(thigh_len + float(v6.geom('left_knee_module').pos[2]), 0.048, places=4)
+        self.assertAlmostEqual(thigh_len + float(v5.geom('left_knee_module').pos[2]), 0.091, places=4)
+        import evaluate
+        old = dodo_env.default_config().to_dict()
+        del old['model']
+        self.assertEqual(evaluate.saved_env_config(old).model, 'v5')
+        self.assertEqual(evaluate.saved_env_config(dodo_env.default_config().to_dict()).model,
+                         dodo_env.DEFAULT_MODEL)
 
     def test_mjx_matches_mujoco_zero_action(self):
         """MJX and C MuJoCo agree on 1 s of passive standing."""

@@ -1,4 +1,4 @@
-"""Dodo v5 stand / step-in-place environment for MuJoCo Playground (MJX or MJX-Warp).
+"""Dodo stand / step-in-place / walk environment (robot model v5 or v6) for MuJoCo Playground (MJX or MJX-Warp).
 
 Task: on each episode the robot is either told to STAND (both feet planted) or to
 STEP IN PLACE following a two-foot gait clock. The base-velocity command is zero
@@ -36,7 +36,17 @@ import numpy as np
 
 from mujoco_playground._src import mjx_env
 
-MODEL_PATH = Path(__file__).resolve().parents[1] / 'models' / 'dodo_v5.xml'
+MODELS_DIR = Path(__file__).resolve().parents[1] / 'models'
+# Robot model versions (simulation/models/README.md). A policy is tied to the
+# model it was trained on; runs saved before the 'model' key existed used v5.
+MODELS = {'v5': 'dodo_v5.xml', 'v6': 'dodo_v6.xml'}
+DEFAULT_MODEL = 'v6'
+
+
+def model_path(version: str) -> Path:
+    if version not in MODELS:
+        raise ValueError(f'unknown model {version!r}; known: {sorted(MODELS)}')
+    return MODELS_DIR / MODELS[version]
 FEET = ('left_foot', 'right_foot')
 NUM_JOINTS = 10
 # Left<->right mirror of one leg's joints (hip yaw, hip roll, hip pitch, knee, ankle):
@@ -76,6 +86,7 @@ def filter_alpha(cutoff_hz: float, dt: float) -> float:
 
 def default_config() -> config_dict.ConfigDict:
     return config_dict.create(
+        model=DEFAULT_MODEL,          # robot model version, see MODELS
         ctrl_dt=0.02,
         sim_dt=0.004,
         episode_length=1000,          # 20 s
@@ -152,13 +163,13 @@ class DodoStepInPlace(mjx_env.MjxEnv):
         self,
         config: Optional[config_dict.ConfigDict] = None,
         config_overrides: Optional[Dict[str, Union[str, int, list[Any]]]] = None,
-        xml_path: Path = MODEL_PATH,
+        xml_path: Optional[Path] = None,
     ):
         # Fresh config per instance: overrides are applied in place, so a shared
         # default would leak one env's overrides into the next.
         config = default_config() if config is None else config.copy_and_resolve_references()
         super().__init__(config, config_overrides)
-        self._xml_path = str(xml_path)
+        self._xml_path = str(xml_path if xml_path is not None else model_path(self._config.model))
         self._mj_model = mujoco.MjModel.from_xml_path(self._xml_path)
         self._mj_model.opt.timestep = self.sim_dt
         if self._config.solver_iterations is not None:

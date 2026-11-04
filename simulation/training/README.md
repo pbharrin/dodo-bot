@@ -1,6 +1,6 @@
 # Learned stand / step-in-place policy (stage 1)
 
-Trains a 50 Hz joint-position policy for the [v5 model](../models/build_model_v5.py) with MuJoCo Playground, Brax PPO and MJX-Warp. Each episode is either **stand** (25%) or **step in place** following a two-foot gait clock (75%). The base-velocity command is zero, so a good policy marches on the spot without drifting and recovers from pushes.
+Trains a 50 Hz joint-position policy for the Dodo robot model ([v6](../models/build_model_v6.py) by default; stages 1–2b were trained on [v5](../models/build_model_v5.py); see [models](../models/README.md)) with MuJoCo Playground, Brax PPO and MJX-Warp. Each episode is either **stand** (25%) or **step in place** following a two-foot gait clock (75%). The base-velocity command is zero, so a good policy marches on the spot without drifting and recovers from pushes.
 
 Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping in place includes weight transfer and single support, but done dynamically.
 
@@ -175,6 +175,31 @@ Remaining asymmetries, neither blocking:
 
 - **Left hip yaw moves about 50% more than the right** (ROM 0.17 vs 0.12 rad), but its straight-line mirror error is small (0.038). It comes from turning, where the yaw/roll symmetry penalty is faded out: the policy probably turns mostly with the left hip in both directions. Torques are small.
 - **Left ankle torque at the end of each control step is higher** (p99 6.5 vs 3.8 Nm) although the angles now mirror. The reward compares angles only; foot loading or centre of pressure may still differ. Measuring left/right foot normal force and CoP would find the cause.
+
+## Model v6: knee and ankle motors at the joints (2026-11-04)
+
+v6 moves the knee and ankle motors to 48 mm above their joints, an integrated capstan cartridge, instead of v5's 91 mm and 103 mm. Swing-leg inertia about the hip rises about 31% (details: `models/README.md`). New training runs default to v6.
+
+Zero-shot check: `stage2_smooth`, trained on v5, run unchanged on each model. Both on the Mac (`evaluate.py --impl jax`, 64 episodes; `replay_mujoco.py`, 24 episodes). CPU numbers differ slightly from the g5 evaluation in "Stage 2b result", so compare within this table.
+
+| | v5 | v6 |
+| --- | ---: | ---: |
+| Survival (evaluate) | 100% | 100% |
+| Stepping contact match | 0.817 | 0.819 |
+| Speed error, m/s | 0.069 | 0.071 |
+| Yaw-rate error, rad/s | 0.058 | 0.063 |
+| Peak foot height, cm | 4.4 | 4.4 |
+| Hip roll peak p99 L / R, Nm | 5.9 / 6.3 | 5.9 / 6.5 |
+| Hip pitch peak p99 L / R, Nm | 3.5 / 2.6 | 3.5 / 2.6 |
+| Knee peak p99 L / R, Nm | 6.3 / 7.2 | 6.2 / 7.2 |
+| Ankle peak p99 L / R, Nm | 8.4 / 7.5 | 8.4 / 7.5 |
+| Torque RMS, all joints, Nm | ≤ 2.4 | ≤ 2.5 |
+| Replay survival, all 9 conditions | 100% except 1 fall at 40 ms (g5 run) | 100% |
+| Replay "realistic" speed / yaw error | 0.067 / 0.047 (g5 run) | 0.068 / 0.051 |
+
+Every joint's torque is within ±3% and saturation is unchanged. At a 1.0–1.5 Hz gait the swing accelerations are slow, so the extra inertia adds little torque compared with single-support gravity load, and the domain randomization (link masses, armature) already covers a change this size. The no-fall result at 40 ms on v6 is within the noise of one fall in 24 episodes.
+
+Retraining on v6 isn't needed for this result. Retrain once milestone-2 bench data changes the estimates (module mass, rotor inertia, gains, torque limit), warm-starting from `simulation/policies/stage2_smooth`. That avoids a retrain for each estimate change.
 
 ## C MuJoCo replay check
 
@@ -430,7 +455,8 @@ Probe specific conditions with `--env-override` (e.g. `push_config.enable=false`
 - **Action:** `q* = q_home + 0.5 rad × a` (or the low-pass-filtered `a` with `action_filter_hz`, stage 2b), with `a` tanh-bounded to [-1, 1], clamped to the joint range, and tracked by a joint-level PD servo (kp 30, kd 1, ±10 Nm). This is the "bounded joint-position targets with validated local gains" interface from the project plan. The real MKS XDrive position loop runs on the motor side through the capstan. Once a module is on the bench, identify its joint-level response and match `KP`/`KD` (or model it explicitly).
 - **Observations:** the policy gets only what the robot will have: IMU gyro and gravity direction, joint encoders, the previous action and the gait clock. Base velocity, contacts and foot heights go only to the critic.
 - **Sim-to-real randomization:** floor friction, link masses, torso mass (−0.3 to +0.8 kg) and CoM (±2 cm), armature, damping, friction loss, servo gains, torque limit, a one-control-step action delay on half the episodes, ±0.02 rad encoder offsets, sensor noise and base-velocity pushes.
-- **Model estimates** (tagged `ESTIMATE` in `build_model_v5.py`) still need hardware data: 0.45 kg per actuator module, 1.6 kg torso, link masses, rotor inertia (→ 0.0096 kg m² armature), joint friction/damping, and where the knee and ankle motors sit. When modules are weighed and characterized (milestone 2), update the generator, regenerate, rerun the tests and retrain. Policies are tied to a model version.
+- **Model version:** `model` in the env config picks `dodo_v5.xml` or `dodo_v6.xml` (default v6). `config.json` records it; runs saved before the key existed load as v5. Use `--env-override 'model="v5"'` to run v5 explicitly.
+- **Model estimates** (tagged `ESTIMATE` in `build_model_v6.py`) still need hardware data: 0.45 kg per actuator module, 1.6 kg torso, link masses, rotor inertia (→ 0.0096 kg m² armature), joint friction/damping, and where the knee and ankle motors sit. When modules are weighed and characterized (milestone 2), update the generator, regenerate, rerun the tests and retrain. Policies are tied to a model version.
 - **Collision:** only feet touch the floor; leg-on-leg contact isn't simulated. The `feet_distance` reward keeps the feet at least 120 mm apart. Check the videos for leg crossing that CAD would forbid.
 - **No ankle roll:** sideways balance must come from hip roll and foot placement, as on the planned hardware.
 
