@@ -7,6 +7,7 @@ MuJoCo models, standing and walking controllers, diagnostic experiments, and sel
 - `models/`: model generators and MuJoCo XML model definitions.
 - `controllers/`: reusable control algorithms (standing, CoP, and future walking).
 - `experiments/`: reproducible experiments, probes, and tests.
+- `training/`: MuJoCo Playground / MJX-Warp reinforcement-learning environments and training scripts.
 - `results/`: small selected CSV outputs and documented experiment findings. Avoid committing large video files.
 
 ## Current work
@@ -23,10 +24,6 @@ The model retains its original 130 mm hip spacing. No geometry changes were made
 
 [Transition v2](experiments/TRANSITION_V2.md) adds measured-load feedback, bounded posture updates, collision clearance checks, and explicit failure diagnostics on the unchanged model. It is an experimental follow-up; the two-foot-to-one-foot transition is not yet solved. See [validation results](results/transition_v2/README.md).
 
-## Planning-only release feasibility
+## Learned stand / step-in-place policy (v5 model)
 
-The [feasibility search](experiments/FEASIBILITY_SEARCH.md) found a sampled quasi-static release-only path on the unchanged model. [Results and the exported plan](results/feasibility_search/README.md) distinguish static force feasibility from an airborne transition and dynamic tracking.
-
-## Dynamic outer-toe release test
-
-[The release-only controller experiment](experiments/RELEASE_TEST.md) tracks the exported outer-toe path with v2's torque controller and measured-force feedback. It adds a contact-force handoff and progress governor. [Recorded dynamic results](results/release_test/README.md) distinguish early tracking failures from endpoint unloading; a release or airborne transition has not yet been demonstrated.
+Development has moved from quasi-static single-support control to dynamic policy training. The [v5 model](models/README.md) uses the project-plan geometry and estimated actuator masses (6.8 kg). The [stage 1 training environment](training/README.md) trains standing and stepping in place with MuJoCo Playground, Brax PPO and MJX-Warp. It is CPU-validated; GPU training has not been run yet.

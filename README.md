@@ -2,6 +2,8 @@
 
 A bird-inspired, 3D-printed biped with the top of its torso **500 mm above the ground in its nominal standing pose**. Head/neck height is additional.
 
+ ![Stage 1: stepping in place with pushes](docs/media/stage1_step.gif)
+
 ## Design baseline
 
 - **Five actuators per leg, ten total:** hip roll, hip pitch, hip yaw, knee pitch, and ankle/hock pitch. The user confirms two motors for hip pitch/yaw; their transmission arrangement remains to be verified.
