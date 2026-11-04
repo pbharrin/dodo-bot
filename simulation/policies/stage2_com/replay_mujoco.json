@@ -1,0 +1,178 @@
+{
+  "episodes": 24,
+  "seed": 0,
+  "env_override": [],
+  "results": {
+    "as_trained": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.823,
+      "moving_lin_vel_error_mps": 0.0662975316464129,
+      "moving_yaw_rate_error_radps": 0.051252066950036326,
+      "peak_torque_Nm": 10.0,
+      "torque_p99_Nm": 8.44129269853273,
+      "saturated_frac": 0.00015,
+      "condition": {
+        "solver_iterations": 2,
+        "ls_iterations": 8,
+        "sim_dt": 0.004,
+        "latency_ms": 0,
+        "torque_limit_Nm": 10.0
+      }
+    },
+    "full_solver": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.823375,
+      "moving_lin_vel_error_mps": 0.06609576859385978,
+      "moving_yaw_rate_error_radps": 0.051337198053872726,
+      "peak_torque_Nm": 10.0,
+      "torque_p99_Nm": 8.44832196893378,
+      "saturated_frac": 0.00014166666666666668,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.004,
+        "latency_ms": 0,
+        "torque_limit_Nm": 10.0
+      }
+    },
+    "full_solver_dt2ms": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.8241666666666667,
+      "moving_lin_vel_error_mps": 0.06628056152817585,
+      "moving_yaw_rate_error_radps": 0.05191954723746955,
+      "peak_torque_Nm": 10.0,
+      "torque_p99_Nm": 8.332163955359492,
+      "saturated_frac": 0.0001375,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.002,
+        "latency_ms": 0,
+        "torque_limit_Nm": 10.0
+      }
+    },
+    "latency_10ms": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.8036666666666666,
+      "moving_lin_vel_error_mps": 0.06804649736609565,
+      "moving_yaw_rate_error_radps": 0.05216534730671001,
+      "peak_torque_Nm": 10.0,
+      "torque_p99_Nm": 8.573283445601161,
+      "saturated_frac": 0.00022083333333333333,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.004,
+        "latency_ms": 10,
+        "torque_limit_Nm": 10.0
+      }
+    },
+    "latency_20ms": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.8096041666666667,
+      "moving_lin_vel_error_mps": 0.06924572497744055,
+      "moving_yaw_rate_error_radps": 0.06103397133034257,
+      "peak_torque_Nm": 10.0,
+      "torque_p99_Nm": 8.903570047320422,
+      "saturated_frac": 0.00040416666666666666,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.004,
+        "latency_ms": 20,
+        "torque_limit_Nm": 10.0
+      }
+    },
+    "latency_40ms": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.7977083333333334,
+      "moving_lin_vel_error_mps": 0.08132291162272005,
+      "moving_yaw_rate_error_radps": 0.09736613403003108,
+      "peak_torque_Nm": 10.0,
+      "torque_p99_Nm": 9.373573254643889,
+      "saturated_frac": 0.00065,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.004,
+        "latency_ms": 40,
+        "torque_limit_Nm": 10.0
+      }
+    },
+    "torque_8Nm": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.8230208333333333,
+      "moving_lin_vel_error_mps": 0.06618230451967579,
+      "moving_yaw_rate_error_radps": 0.05173375979232239,
+      "peak_torque_Nm": 8.0,
+      "torque_p99_Nm": 8.0,
+      "saturated_frac": 0.0017916666666666667,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.004,
+        "latency_ms": 0,
+        "torque_limit_Nm": 8.0
+      }
+    },
+    "torque_6Nm": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.821,
+      "moving_lin_vel_error_mps": 0.06636639594630887,
+      "moving_yaw_rate_error_radps": 0.05255625564591726,
+      "peak_torque_Nm": 6.0,
+      "torque_p99_Nm": 6.0,
+      "saturated_frac": 0.022554166666666667,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.004,
+        "latency_ms": 0,
+        "torque_limit_Nm": 6.0
+      }
+    },
+    "realistic": {
+      "episodes": 24,
+      "survival_rate": 1.0,
+      "falls": 0,
+      "mean_time_alive_s": 20.0,
+      "stepping_contact_match": 0.8030208333333333,
+      "moving_lin_vel_error_mps": 0.06786877293551659,
+      "moving_yaw_rate_error_radps": 0.05139037178542151,
+      "peak_torque_Nm": 8.0,
+      "torque_p99_Nm": 8.0,
+      "saturated_frac": 0.0022166666666666667,
+      "condition": {
+        "solver_iterations": 100,
+        "ls_iterations": 50,
+        "sim_dt": 0.002,
+        "latency_ms": 10,
+        "torque_limit_Nm": 8.0
+      }
+    }
+  }
+}

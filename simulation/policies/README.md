@@ -16,7 +16,20 @@ Each directory holds:
 
 `evaluate.py` and `replay_mujoco.py` accept a policy directory in place of a run directory, but they write their results into it. Running them on an archived policy overwrites its `eval.json` / `replay_mujoco.json`. Copy the directory to `simulation/results/local/train/` first, or use `--env-override`, which writes `*_override.json` instead.
 
-## `stage2_smooth` (current best, 2026-11-02)
+## `stage2_com` (current best, 2026-11-04)
+
+`stage2_smooth` fine-tuned on model v6 with the torso CoM randomized ±5 cm fore/aft, so it tolerates whole-body CoM errors of 12 mm back to 20 mm forward with 100% survival (`stage2_smooth`: 75% at 12 mm back). Nominal walking is unchanged, and it survives all replay conditions including 40 ms latency. Results: `simulation/training/README.md`, "Stage 2c result".
+
+- **Lineage:** `stage1_v5` → `stage2_walk` → `stage2_sym` → `stage2_smooth` → `stage2_com`; 150M steps each on a g5.xlarge.
+- **Training code:** commit `1213b3d` (`--task walk_com --warm-start simulation/policies/stage2_smooth`).
+- **Robot model:** `simulation/models/dodo_v6.xml` (`model: v6` in `config.json`), unchanged since `f8e7852`. sha256 `ce9b3b03c7c3c006d308b6159061dd1d8162cae0c4e7d3bcc88fe2499d382cc2`.
+- **params.pkl** sha256: `bcf562c7298f915f02363239bece0c8f8db162825d4f838e6c4b80c33b59c610`.
+- **Interface:** same as `stage2_smooth`: 50 Hz, 46-value `state`, actor MLP 256-128-64, 6 Hz action filter (α = 0.53), `q* = q_home + 0.5 rad × a_filtered`, raw last action in the observation.
+- **Hardware conditions:** latency at or under 20 ms (40 ms survived but tracking degrades); whole-body CoM within 12 mm back to 20 mm forward of the v6 estimate. Measure the assembled robot's CoM and retrain if it falls outside that.
+
+Load it as below with `d = Path('simulation/policies/stage2_com')`.
+
+## `stage2_smooth` (2026-11-02, superseded by `stage2_com`)
 
 Walks forward/back up to 0.3 m/s, sidesteps and turns on command, stands or steps in place, recovers from pushes. A 6 Hz action low-pass filter removes most PD-servo torque spikes. Results: `simulation/training/README.md`, "Stage 2b result".
 

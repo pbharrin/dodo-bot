@@ -21,7 +21,8 @@ Stage 1 is meant to replace the quasi-static two-foot-to-one-foot work. Stepping
 - **GPU-validated (MJX-Warp, g5.xlarge A10G, 2026-11-02):** all 6 tests (the 7th, a config check, was added afterwards) pass with `DODO_TEST_IMPL=warp`. A 10M-step trial ran at about 35k steps/s. Eval: 100% survival over 20 s with pushes in all 64 episodes, but stepping contact match 0.61 (the never-lift baseline is 0.60) and peak foot height about 1 cm. It learned to stand, not to step.
 - **Stage 1 trained (2026-11-02):** 150M steps on the g5.xlarge in 41 min. The policy stands and steps in place with 4 cm foot clearance and survives every evaluation episode with pushes. See "Stage 1 result" below. Not yet checked: C MuJoCo replay, rope compliance, measured actuator limits.
 - **Stage 2 trained (2026-11-02):** `stage2_walk` walks, turns and sidesteps on command with 100% survival with pushes, but with a favoured-leg gait. **`stage2_sym`** (fine-tuned with a symmetry reward) fixes that and is the current best policy. See "Stage 2: walking" below.
-- **Stage 2b trained (2026-11-02): `stage2_smooth` is the current best policy.** A 6 Hz action low-pass filter cuts knee/ankle torque saturation about 40× with equal or better walking. It falls once in 24 replay episodes at 40 ms latency (`stage2_sym`: none). See "Stage 2b".
+- **Stage 2b trained (2026-11-02):** `stage2_smooth` (superseded by `stage2_com`). A 6 Hz action low-pass filter cuts knee/ankle torque saturation about 40× with equal or better walking. It falls once in 24 replay episodes at 40 ms latency (`stage2_sym`: none). See "Stage 2b".
+- **Stage 2c trained (2026-11-04): `stage2_com` is the current best policy.** Trained on v6 with torso CoM randomized ±5 cm fore/aft. 100% survival with the whole-body CoM from 12 mm back to 20 mm forward (`stage2_smooth`: 75% at 12 mm back), and 100% in all replay conditions including 40 ms latency, with nominal walking unchanged. See "Stage 2c".
 - **C MuJoCo replay passed (2026-11-02):** `stage2_sym` keeps 100% survival in plain C MuJoCo with the full solver, a 2 ms timestep, up to 40 ms latency and torque limits down to 6 Nm. See "C MuJoCo replay check".
 - **Torque measurement corrected (2026-11-02):** the stage-1 and `stage2_walk` torque tables below sampled torque at the end of each 20 ms control step and miss brief PD-servo spikes right after each new target. p95 and RMS there are fine; their max / saturation numbers understate the peaks. See "Torque spikes from position-target steps".
 
@@ -204,7 +205,7 @@ Retraining on v6 isn't needed for this result. Retrain once milestone-2 bench da
 
 ## Hip offset sweep (2026-11-04)
 
-v6 puts the hip yaw, roll and pitch axes at one point; real bearings and drums need offsets. `hip_offset_sweep.py` builds v6 variants with offsets and runs `stage2_smooth` on each, unchanged, in C MuJoCo (the same 24 episodes, full solver and "realistic" conditions; about 4 min on a Mac, no GPU needed). The policy isn't retrained, so this measures what an offset costs before the policy adapts. Physics-driven costs, such as the hip-roll moment, remain after retraining; posture and foot-placement costs mostly don't. Hip pitch and yaw are independently driven, so there is no coupling to model.
+v6 puts the hip yaw, roll and pitch axes at one point; real bearings and drums need offsets. `hip_offset_sweep.py` builds v6 variants with offsets and runs a fixed policy on each (default `policies/stage2_com`; the table below used `stage2_smooth`), unchanged, in C MuJoCo (the same 24 episodes, full solver and "realistic" conditions; about 4 min on a Mac, no GPU needed). The policy isn't retrained, so this measures what an offset costs before the policy adapts. Physics-driven costs, such as the hip-roll moment, remain after retraining; posture and foot-placement costs mostly don't. Hip pitch and yaw are independently driven, so there is no coupling to model.
 
 Offsets in mm (x forward, y outward, z up); roll = roll axis relative to yaw, pitch = pitch centre relative to roll. Torque = peak over substeps, p99, worse of left/right, full solver. Static moment = total weight × lateral distance from the roll axis to the CoM.
 
@@ -233,6 +234,28 @@ Findings, for CAD:
 - **A wider stance (pitch centre outboard) costs tracking, not torque:** speed error +15% at 20 mm and +35% at 40 mm, before retraining. A retrain should recover most of it.
 - **Fore/aft offsets act through the centre of mass,** which leads to the next finding.
 
+### Rerun with `stage2_com`
+
+The same sweep with `stage2_com` (trained on v6 with ±5 cm torso CoM randomization; 24 episodes; full solver, realistic in brackets):
+
+| Variant | Survival | Speed err (m/s) | Hip roll p95 / p99 | Hip pitch p99 | Knee p99 | Ankle p99 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| baseline | 100% | 0.066 | 6.1 / 6.9 (7.0) | 3.5 | 6.5 | 7.7 |
+| roll axis in 20 | 100% | 0.070 | 5.3 / 6.1 (6.1) | 3.4 | 6.6 | 7.9 |
+| roll axis in 10 | 100% | 0.067 | 5.6 / 6.5 (6.5) | 3.4 | 6.6 | 7.7 |
+| roll axis out 10 | 100% | 0.066 | 6.5 / 7.5 (7.7) | 3.5 | 6.5 | 7.7 |
+| roll axis out 20 | 100% | 0.068 | 7.0 / 8.1 (8.0, at limit) | 3.6 | 6.5 | 7.7 |
+| roll axis out 30 | 100% | 0.070 | 7.5 / 8.7 (8.0, p95 at limit) | 3.7 | 6.5 | 7.7 |
+| pitch out 20 | 100% | 0.075 | 6.2 / 7.2 | 3.6 | 6.5 | 7.7 |
+| pitch out 40 | 100% | 0.091 | 6.3 / 7.4 | 3.7 | 6.8 | 8.0 |
+| roll below yaw 40 | 100% | 0.065 | 6.0 / 6.8 | 3.5 | 6.5 | 7.8 |
+| pitch below roll 40 | 100% | 0.063 | 6.3 / 7.3 | 3.5 | 6.5 | 7.8 |
+| **pitch forward 20** | **100%** (`stage2_smooth`: 67%) | 0.070 | 6.0 / 6.9 | 3.9 | 6.0 | 7.5 |
+| pitch back 20 | 100% | 0.066 | 6.0 / 6.9 | 3.4 | 7.2 | 8.0 |
+| packaged example | 100% | 0.075 | 6.8 / 7.8 (7.8) | 3.6 | 6.6 | 7.9 |
+
+Every variant now survives 100% in both conditions, including legs 20 mm forward. The torque trends are unchanged: roll-axis spacing still costs about 0.6 Nm per 10 mm, vertical stacking is still nearly free, and a wider stance still costs tracking. Hip roll runs about 0.3 Nm higher across the board than with `stage2_smooth`. With the 8 Nm "realistic" limit, roll axes 20 mm or more outboard reach the limit, so the CAD guidance stands: keep the roll axes at or inboard of the yaw axis and stack the hip vertically. The fore/aft hip position is no longer a survival constraint within ±20 mm. It shifts load between hip pitch (legs forward) and knee/ankle (legs back) by about 0.5 Nm.
+
 ### Policy sensitivity to the fore/aft centre of mass
 
 Moving the legs 20 mm forward moves the whole-body CoM 12.5 mm backward relative to the feet, and survival drops to 67%. Shifting only the torso mass reproduces it (full solver, 24 episodes, no hip offsets):
@@ -248,7 +271,7 @@ Moving the legs 20 mm forward moves the whole-body CoM 12.5 mm backward relative
 
 This is a policy problem, not a physics limit: the CoM stays 40+ mm inside the foot's rear edge. Training randomizes the torso CoM by ±2 cm, which moves the whole-body CoM only about ±7 mm (the torso body is 2.5 of 6.84 kg). Backward shifts beyond that are outside what the policy has seen. **The real robot's CoM won't be known that precisely** (battery position, wiring, shell, the estimated masses), so this matters for hardware regardless of the hip design. The fix is a fine-tune with wider CoM randomization; then rerun this sweep.
 
-## Stage 2c: wider centre-of-mass randomization (set up 2026-11-04, not yet trained)
+## Stage 2c: wider centre-of-mass randomization (trained 2026-11-04)
 
 `--task walk_com` is `walk_smooth` plus `COM_OVERRIDES`: torso CoM randomized ±5 cm fore/aft instead of ±2 cm (sideways and vertical stay ±2 cm), which moves the whole-body CoM by about ±18 mm. The range is now the `torso_com_range` config key (default unchanged at ±2 cm). It trains on model v6 (the default) and warm-starts from the archived `stage2_smooth`; observations are unchanged, so the warm start loads as-is.
 
@@ -274,6 +297,37 @@ The last command is the CoM sensitivity check (whole-body CoM moved by shifting 
 | 20 mm forward | 96% / 96% | 0.075 / 0.078 | 0.072 / 0.074 |
 
 Success criteria for `stage2_com`: 100% survival from 15 mm back to 15 mm forward, at least 90% at ±20 mm, and nominal tracking and torque at `stage2_smooth` levels. If it succeeds, archive it as the current best and rerun the hip offset sweep with it.
+
+### Stage 2c result: `stage2_com` (current best)
+
+150M steps on a g5.xlarge, model v6, warm-started from `stage2_smooth`. CoM sensitivity, 24 episodes, full solver / realistic:
+
+| Whole-body CoM shift | `stage2_smooth` survival | `stage2_com` survival |
+| --- | ---: | ---: |
+| 0 | 100% / 100% | 100% / 100% |
+| 6 mm back | 96% / 96% | 100% / 100% |
+| 9 mm back | 92% / 88% | 100% / 100% |
+| 12 mm back | 75% / 75% | 100% / 100% |
+| 15 mm back | 62% / 62% | 96% / 92% |
+| 20 mm back | 33% / 38% | 75% / 75% |
+| 12 mm forward | 100% / 100% | 100% / 100% |
+| 20 mm forward | 96% / 96% | 100% / 100% |
+
+Nominal performance (`evaluate.py`, 64 episodes, g5) is unchanged:
+
+| | `stage2_smooth` (v5) | `stage2_com` (v6) |
+| --- | ---: | ---: |
+| Survival | 100% | 100% |
+| Speed err / yaw err | 0.066 / 0.052 | 0.067 / 0.055 |
+| Stepping contact match | 0.818 | 0.816 |
+| Hip roll peak p99, L / R | 5.7 / 6.4 Nm | 6.1 / 6.8 Nm |
+| Ankle saturation, L / R | 0.11% / 0.03% | 0.27% / 0.20% |
+
+C MuJoCo replay (24 episodes): 100% survival in all 9 conditions, including 40 ms latency, where `stage2_smooth` fell once (speed / yaw err 0.081 / 0.097 vs 0.079 / 0.087). Realistic: 0.068 / 0.051, 0.22% saturated. 6 Nm limit: 2.26% saturated (`stage2_smooth` 1.90%).
+
+Against the criteria: met forward and up to 12 mm back. Missed narrowly at 15 mm back (96 / 92%) and at 20 mm back (75%). Backward is the weak side partly for geometric reasons: the nominal CoM already sits 23 mm behind the sole centre, leaving about 57 mm to the heel edge versus over 100 mm to the toe. The hip roll increase is about half v6 (+0.2 Nm zero-shot) and half a firmer posture.
+
+Decision: accept as current best rather than train further. Treat ±12 mm as the guaranteed CoM tolerance. Measure the real CoM after assembly (balance on an edge, about ±5 mm), set it in the model and retrain once. In CAD, bias the CoM slightly forward or lengthen the heel; forward shifts are harmless.
 
 ## C MuJoCo replay check
 
@@ -357,7 +411,7 @@ Zero-shot check (CPU, C MuJoCo replay, the same 8 stepping episodes): `stage2_sy
 
 The filter removes nearly all saturation even before retraining. Tracking and gait timing get worse because the policy doesn't expect the lag; the fine-tune should recover them. Success criteria for `stage2_smooth`: tracking and contact match back to `stage2_sym` levels, knee/ankle peak p99 well under 10 Nm, and 40 ms latency still survivable.
 
-### Stage 2b result: `stage2_smooth` (2026-11-02), current best
+### Stage 2b result: `stage2_smooth` (2026-11-02)
 
 150M steps warm-started from `stage2_sym` with `--task walk_smooth`, on the g5. Archived in `simulation/policies/stage2_smooth/` (weights, normalizer, config). Evaluated with `evaluate.py` (64 episodes) and `replay_mujoco.py` (24 episodes).
 

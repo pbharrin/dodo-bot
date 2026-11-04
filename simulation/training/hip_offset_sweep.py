@@ -120,7 +120,7 @@ def joint_stats(results):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--policy', type=Path, default=REPO / 'simulation' / 'policies' / 'stage2_smooth')
+    ap.add_argument('--policy', type=Path, default=REPO / 'simulation' / 'policies' / 'stage2_com')
     ap.add_argument('--variants', nargs='+', default=list(VARIANTS), choices=list(VARIANTS) + list(COM_VARIANTS) + ['com'],
                     help="hip variants (default all) and/or CoM variants; 'com' = baseline + all CoM variants")
     ap.add_argument('--conditions', nargs='+', default=list(CONDITIONS), choices=list(replay_mujoco.CONDITIONS))
