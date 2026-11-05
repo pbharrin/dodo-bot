@@ -1,0 +1,891 @@
+{
+  "schema_version": 1,
+  "units": "mm",
+  "configuration": {
+    "schema_version": 1,
+    "units": "mm",
+    "configuration": "v6_nominal",
+    "hip_roll_offset_mm": [
+      0,
+      0,
+      0
+    ],
+    "hip_pitch_offset_mm": [
+      0,
+      0,
+      0
+    ],
+    "module_envelope": {
+      "diameter_mm": 90,
+      "axial_length_mm": 44,
+      "status": "simulation_estimate",
+      "source": "simulation/models/build_model_v6.py: ACTUATOR_RADIUS and ACTUATOR_HALF_LEN",
+      "note": "Aggregate module reservation, NOT a verified Eaglepower motor drawing or complete capstan housing. The 8308 model name must not be used as an outside-diameter measurement."
+    },
+    "distal_drums": {
+      "width_mm": 10,
+      "axial_gap_mm": 3,
+      "status": "CAD_study_assumption",
+      "note": "Knee/ankle input and output drums share an outboard plane. Their radii and 48 mm center distance come from v6; width and axial separation are adjustable placeholders. No shaft, bearings, rope groove, anchors, or housing are designed yet."
+    },
+    "unresolved_hardware": [
+      {
+        "item": "Eaglepower LA8308 90 KV",
+        "quantity": 10,
+        "needs": "Measured outside diameter, axial stack, shaft protrusions, bolt circles, wire exit, mass"
+      },
+      {
+        "item": "MKS XDrive Mini",
+        "quantity": 10,
+        "needs": "Purchased revision dimensions, encoder datum, connectors, cooling and service space; included in 450 g module budget, not added again"
+      },
+      {
+        "item": "Output bearings, shaft, encoder, capstan housing",
+        "quantity": 10,
+        "needs": "Choose load-bearing stack and verify fits; included in module mass allowance"
+      },
+      {
+        "item": "UNO Q, battery, IMU, distribution and wiring",
+        "quantity": 1,
+        "needs": "Exact hardware and mounting envelopes; included in 1.6 kg torso budget, not added again"
+      }
+    ],
+    "simulation_baseline_commit": "8e0208a9719a7992f4a6c846b08704ecf21c91f1"
+  },
+  "source_model": "simulation/models/build_model_v6.py",
+  "source_model_sha256": "2e22b269931a9d51f1657845f3ae5fca7927700ebfdfe5eb17fca5d3c7c4aaf9",
+  "coordinate_frame": "X forward, Y left, Z up; right pitch/yaw signs are NOT negated",
+  "joint_zero": "q=0 is neutral; body-frame pitch offsets +25/-40/+15 deg",
+  "joints": {
+    "left_hip_yaw": {
+      "origin_mm": [
+        0.0,
+        100.0,
+        330.0
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "range_deg": [
+        -30.0,
+        30.0
+      ],
+      "body": "left_hip_yaw"
+    },
+    "left_hip_roll": {
+      "origin_mm": [
+        0.0,
+        100.0,
+        330.0
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "range_deg": [
+        -25.0,
+        25.0
+      ],
+      "body": "left_hip_roll"
+    },
+    "left_hip_pitch": {
+      "origin_mm": [
+        0.0,
+        100.0,
+        330.0
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "range_deg": [
+        -60.0,
+        60.0
+      ],
+      "body": "left_thigh"
+    },
+    "left_knee_pitch": {
+      "origin_mm": [
+        -54.940374046647456,
+        100.0,
+        212.1799876947279
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "range_deg": [
+        -60.0,
+        60.0
+      ],
+      "body": "left_shank"
+    },
+    "left_ankle_pitch": {
+      "origin_mm": [
+        -16.893974548810455,
+        100.0,
+        70.188891194803
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "range_deg": [
+        -60.0,
+        60.0
+      ],
+      "body": "left_foot"
+    },
+    "right_hip_yaw": {
+      "origin_mm": [
+        0.0,
+        -100.0,
+        330.0
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "range_deg": [
+        -30.0,
+        30.0
+      ],
+      "body": "right_hip_yaw"
+    },
+    "right_hip_roll": {
+      "origin_mm": [
+        0.0,
+        -100.0,
+        330.0
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "range_deg": [
+        -25.0,
+        25.0
+      ],
+      "body": "right_hip_roll"
+    },
+    "right_hip_pitch": {
+      "origin_mm": [
+        0.0,
+        -100.0,
+        330.0
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "range_deg": [
+        -60.0,
+        60.0
+      ],
+      "body": "right_thigh"
+    },
+    "right_knee_pitch": {
+      "origin_mm": [
+        -54.940374046647456,
+        -100.0,
+        212.1799876947279
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "range_deg": [
+        -60.0,
+        60.0
+      ],
+      "body": "right_shank"
+    },
+    "right_ankle_pitch": {
+      "origin_mm": [
+        -16.893974548810455,
+        -100.0,
+        70.188891194803
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "range_deg": [
+        -60.0,
+        60.0
+      ],
+      "body": "right_foot"
+    }
+  },
+  "sites": {
+    "imu": [
+      0.0,
+      0.0,
+      400.0
+    ],
+    "left_foot": [
+      13.106025409712682,
+      100.0,
+      0.1888911770271875
+    ],
+    "right_foot": [
+      13.106025409712682,
+      -100.0,
+      0.1888911770271875
+    ]
+  },
+  "actuator_envelopes": [
+    {
+      "name": "left_hip_yaw_module",
+      "body": "torso",
+      "center_mm": [
+        0.0,
+        100.0,
+        385.0
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "right_hip_yaw_module",
+      "body": "torso",
+      "center_mm": [
+        0.0,
+        -100.0,
+        385.0
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "left_hip_roll_module",
+      "body": "left_hip_yaw",
+      "center_mm": [
+        0.0,
+        100.0,
+        360.0
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "left_hip_pitch_module",
+      "body": "left_hip_roll",
+      "center_mm": [
+        0.0,
+        135.0,
+        330.0
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "left_knee_module",
+      "body": "left_thigh",
+      "center_mm": [
+        -34.65469747557763,
+        100.0,
+        255.68276146898222
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "left_ankle_module",
+      "body": "left_shank",
+      "center_mm": [
+        -29.317288670553147,
+        100.0,
+        116.55333086824787
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "right_hip_roll_module",
+      "body": "right_hip_yaw",
+      "center_mm": [
+        0.0,
+        -100.0,
+        360.0
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "right_hip_pitch_module",
+      "body": "right_hip_roll",
+      "center_mm": [
+        0.0,
+        -135.0,
+        330.0
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "right_knee_module",
+      "body": "right_thigh",
+      "center_mm": [
+        -34.65469747557763,
+        -100.0,
+        255.68276146898222
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    },
+    {
+      "name": "right_ankle_module",
+      "body": "right_shank",
+      "center_mm": [
+        -29.317288670553147,
+        -100.0,
+        116.55333086824787
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "diameter_mm": 90,
+      "length_mm": 44,
+      "status": "simulation_estimate"
+    }
+  ],
+  "mass_budget": {
+    "total_kg": 6.84,
+    "center_of_mass_mm": [
+      -9.856616908286675,
+      0.0,
+      297.9046252732361
+    ],
+    "items": [
+      {
+        "name": "torso_geom",
+        "mass_kg": 1.6,
+        "center_mm": [
+          0.0,
+          0.0,
+          400.0
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_hip_yaw_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          0.0,
+          100.0,
+          385.0
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_hip_yaw_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          0.0,
+          -100.0,
+          385.0
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_hip_roll_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          0.0,
+          100.0,
+          360.0
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_hip_pitch_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          0.0,
+          135.0,
+          330.0
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_thigh_geom",
+        "mass_kg": 0.12,
+        "center_mm": [
+          -27.470187023323728,
+          100.0,
+          271.089993847364
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_knee_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          -34.65469747557763,
+          100.0,
+          255.68276146898222
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_shank_geom",
+        "mass_kg": 0.1,
+        "center_mm": [
+          -35.917174297728955,
+          100.0,
+          141.18443944476547
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_ankle_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          -29.317288670553147,
+          100.0,
+          116.55333086824787
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "left_foot",
+        "mass_kg": 0.15,
+        "center_mm": [
+          13.106025413267844,
+          100.0,
+          6.1888911770271875
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_hip_roll_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          0.0,
+          -100.0,
+          360.0
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_hip_pitch_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          0.0,
+          -135.0,
+          330.0
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_thigh_geom",
+        "mass_kg": 0.12,
+        "center_mm": [
+          -27.470187023323728,
+          -100.0,
+          271.089993847364
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_knee_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          -34.65469747557763,
+          -100.0,
+          255.68276146898222
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_shank_geom",
+        "mass_kg": 0.1,
+        "center_mm": [
+          -35.917174297728955,
+          -100.0,
+          141.18443944476547
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_ankle_module",
+        "mass_kg": 0.45,
+        "center_mm": [
+          -29.317288670553147,
+          -100.0,
+          116.55333086824787
+        ],
+        "status": "simulation_estimate"
+      },
+      {
+        "name": "right_foot",
+        "mass_kg": 0.15,
+        "center_mm": [
+          13.106025413267844,
+          -100.0,
+          6.1888911770271875
+        ],
+        "status": "simulation_estimate"
+      }
+    ],
+    "note": "Drums, bearings and driver are already inside module allowance. CAD display volumes are not weighed again. Hock envelope has zero mass in v6."
+  },
+  "parts": [
+    {
+      "name": "left_hip_yaw_module",
+      "kind": "module",
+      "body": "torso",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "right_hip_yaw_module",
+      "kind": "module",
+      "body": "torso",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "left_hip_roll_module",
+      "kind": "module",
+      "body": "left_hip_yaw",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "left_hip_pitch_module",
+      "kind": "module",
+      "body": "left_hip_roll",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "left_thigh_geom",
+      "kind": "link",
+      "body": "left_thigh",
+      "note": "Simulation link envelope; not a printable link"
+    },
+    {
+      "name": "left_knee_module",
+      "kind": "module",
+      "body": "left_thigh",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "left_shank_geom",
+      "kind": "link",
+      "body": "left_shank",
+      "note": "Simulation link envelope; not a printable link"
+    },
+    {
+      "name": "left_ankle_module",
+      "kind": "module",
+      "body": "left_shank",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "left_hock_geom",
+      "kind": "link",
+      "body": "left_foot",
+      "note": "Simulation link envelope; not a printable link"
+    },
+    {
+      "name": "left_foot",
+      "kind": "foot",
+      "body": "left_foot",
+      "note": "Plate plus sole envelope; no attachment details"
+    },
+    {
+      "name": "right_hip_roll_module",
+      "kind": "module",
+      "body": "right_hip_yaw",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "right_hip_pitch_module",
+      "kind": "module",
+      "body": "right_hip_roll",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "right_thigh_geom",
+      "kind": "link",
+      "body": "right_thigh",
+      "note": "Simulation link envelope; not a printable link"
+    },
+    {
+      "name": "right_knee_module",
+      "kind": "module",
+      "body": "right_thigh",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "right_shank_geom",
+      "kind": "link",
+      "body": "right_shank",
+      "note": "Simulation link envelope; not a printable link"
+    },
+    {
+      "name": "right_ankle_module",
+      "kind": "module",
+      "body": "right_shank",
+      "note": "Aggregate simulation envelope; purchased dimensions unverified"
+    },
+    {
+      "name": "right_hock_geom",
+      "kind": "link",
+      "body": "right_foot",
+      "note": "Simulation link envelope; not a printable link"
+    },
+    {
+      "name": "right_foot",
+      "kind": "foot",
+      "body": "right_foot",
+      "note": "Plate plus sole envelope; no attachment details"
+    },
+    {
+      "name": "left_knee_pitch_output_drum",
+      "kind": "drum",
+      "body": "left_shank",
+      "note": "Study envelope; width/axial plane unverified"
+    },
+    {
+      "name": "left_knee_pitch_input_drum",
+      "kind": "input",
+      "body": "left_thigh",
+      "note": "Study envelope; no shaft or rope routing"
+    },
+    {
+      "name": "left_ankle_pitch_output_drum",
+      "kind": "drum",
+      "body": "left_foot",
+      "note": "Study envelope; width/axial plane unverified"
+    },
+    {
+      "name": "left_ankle_pitch_input_drum",
+      "kind": "input",
+      "body": "left_shank",
+      "note": "Study envelope; no shaft or rope routing"
+    },
+    {
+      "name": "right_knee_pitch_output_drum",
+      "kind": "drum",
+      "body": "right_shank",
+      "note": "Study envelope; width/axial plane unverified"
+    },
+    {
+      "name": "right_knee_pitch_input_drum",
+      "kind": "input",
+      "body": "right_thigh",
+      "note": "Study envelope; no shaft or rope routing"
+    },
+    {
+      "name": "right_ankle_pitch_output_drum",
+      "kind": "drum",
+      "body": "right_foot",
+      "note": "Study envelope; width/axial plane unverified"
+    },
+    {
+      "name": "right_ankle_pitch_input_drum",
+      "kind": "input",
+      "body": "right_shank",
+      "note": "Study envelope; no shaft or rope routing"
+    },
+    {
+      "name": "left_hip_yaw_axis",
+      "kind": "axis",
+      "body": "left_hip_yaw",
+      "note": ""
+    },
+    {
+      "name": "left_hip_roll_axis",
+      "kind": "axis",
+      "body": "left_hip_roll",
+      "note": ""
+    },
+    {
+      "name": "left_hip_pitch_axis",
+      "kind": "axis",
+      "body": "left_thigh",
+      "note": ""
+    },
+    {
+      "name": "left_knee_pitch_axis",
+      "kind": "axis",
+      "body": "left_shank",
+      "note": ""
+    },
+    {
+      "name": "left_ankle_pitch_axis",
+      "kind": "axis",
+      "body": "left_foot",
+      "note": ""
+    },
+    {
+      "name": "right_hip_yaw_axis",
+      "kind": "axis",
+      "body": "right_hip_yaw",
+      "note": ""
+    },
+    {
+      "name": "right_hip_roll_axis",
+      "kind": "axis",
+      "body": "right_hip_roll",
+      "note": ""
+    },
+    {
+      "name": "right_hip_pitch_axis",
+      "kind": "axis",
+      "body": "right_thigh",
+      "note": ""
+    },
+    {
+      "name": "right_knee_pitch_axis",
+      "kind": "axis",
+      "body": "right_shank",
+      "note": ""
+    },
+    {
+      "name": "right_ankle_pitch_axis",
+      "kind": "axis",
+      "body": "right_foot",
+      "note": ""
+    },
+    {
+      "name": "torso_cage_0_-1_-1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_0_-1_1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_0_1_-1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_0_1_1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_1_-1_-1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_1_-1_1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_1_1_-1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_1_1_1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_2_-1_-1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_2_-1_1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_2_1_-1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    },
+    {
+      "name": "torso_cage_2_1_1",
+      "kind": "torso",
+      "body": "torso",
+      "note": "Torso bounding box, not shell surface"
+    }
+  ]
+}

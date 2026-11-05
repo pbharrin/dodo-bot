@@ -1,0 +1,6 @@
+# CAD authoring/rendering; tested with Python 3.12.
+cadquery==2.7.0
+numpy>=1.26
+matplotlib>=3.8
+# Used only for independent forward-kinematics / mass checks.
+mujoco==3.17.0
