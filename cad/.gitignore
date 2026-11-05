@@ -1,0 +1,4 @@
+__pycache__/
+*.py[cod]
+# Local packaging studies; committed nominal exports live in assemblies/reports.
+studies/

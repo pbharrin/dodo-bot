@@ -1,0 +1,2236 @@
+{
+  "status": "not_manufacturing_ready",
+  "nominal_overlaps": [
+    {
+      "a": "left_hip_yaw_module",
+      "b": "left_hip_roll_module",
+      "intersection_mm3": 126743.11
+    },
+    {
+      "a": "left_hip_yaw_module",
+      "b": "left_hip_pitch_module",
+      "intersection_mm3": 14985.846
+    },
+    {
+      "a": "right_hip_yaw_module",
+      "b": "right_hip_roll_module",
+      "intersection_mm3": 126743.11
+    },
+    {
+      "a": "right_hip_yaw_module",
+      "b": "right_hip_pitch_module",
+      "intersection_mm3": 14985.846
+    },
+    {
+      "a": "left_hip_roll_module",
+      "b": "left_hip_pitch_module",
+      "intersection_mm3": 62705.373
+    },
+    {
+      "a": "left_hip_pitch_module",
+      "b": "left_knee_module",
+      "intersection_mm3": 1796.989
+    },
+    {
+      "a": "right_hip_roll_module",
+      "b": "right_hip_pitch_module",
+      "intersection_mm3": 62705.375
+    },
+    {
+      "a": "right_hip_pitch_module",
+      "b": "right_knee_module",
+      "intersection_mm3": 1796.989
+    },
+    {
+      "a": "left_hip_roll_module",
+      "b": "left_thigh_geom",
+      "intersection_mm3": 35156.485
+    },
+    {
+      "a": "left_hip_pitch_module",
+      "b": "left_thigh_geom",
+      "intersection_mm3": 7925.744
+    },
+    {
+      "a": "left_knee_module",
+      "b": "left_shank_geom",
+      "intersection_mm3": 5721.124
+    },
+    {
+      "a": "left_ankle_module",
+      "b": "left_hock_geom",
+      "intersection_mm3": 3636.832
+    },
+    {
+      "a": "right_hip_roll_module",
+      "b": "right_thigh_geom",
+      "intersection_mm3": 35156.485
+    },
+    {
+      "a": "right_hip_pitch_module",
+      "b": "right_thigh_geom",
+      "intersection_mm3": 7925.744
+    },
+    {
+      "a": "right_knee_module",
+      "b": "right_shank_geom",
+      "intersection_mm3": 5721.124
+    },
+    {
+      "a": "right_ankle_module",
+      "b": "right_hock_geom",
+      "intersection_mm3": 3636.832
+    }
+  ],
+  "scope": "Module-module, module-nonowner link/foot, opposite-leg link/foot only. No torso-shell, wiring, bearings, shafts, fasteners or detailed drum interface clearance.",
+  "distal_travel_sweeps": [
+    {
+      "joint": "left_knee_pitch",
+      "sample_step_deg": 5,
+      "overlap_q_deg": [
+        -60.0,
+        -55.0,
+        -50.0,
+        -45.0,
+        -40.0,
+        -35.0,
+        -30.0,
+        -25.0,
+        -20.0,
+        -15.0,
+        -10.0,
+        -5.0,
+        0.0,
+        5.0,
+        10.0,
+        15.0,
+        20.0,
+        25.0,
+        30.0,
+        35.0,
+        40.0,
+        45.0,
+        50.0,
+        55.0,
+        60.0
+      ],
+      "tested": "left_knee_module vs left_shank_geom"
+    },
+    {
+      "joint": "left_ankle_pitch",
+      "sample_step_deg": 5,
+      "overlap_q_deg": [
+        -60.0,
+        -55.0,
+        -50.0,
+        -45.0,
+        -40.0,
+        -35.0,
+        -30.0,
+        -25.0,
+        -20.0,
+        -15.0,
+        -10.0,
+        -5.0,
+        0.0,
+        5.0,
+        10.0,
+        15.0,
+        20.0,
+        25.0,
+        30.0,
+        35.0,
+        40.0,
+        45.0,
+        50.0,
+        55.0,
+        60.0
+      ],
+      "tested": "left_ankle_module vs left_hock_geom"
+    },
+    {
+      "joint": "right_knee_pitch",
+      "sample_step_deg": 5,
+      "overlap_q_deg": [
+        -60.0,
+        -55.0,
+        -50.0,
+        -45.0,
+        -40.0,
+        -35.0,
+        -30.0,
+        -25.0,
+        -20.0,
+        -15.0,
+        -10.0,
+        -5.0,
+        0.0,
+        5.0,
+        10.0,
+        15.0,
+        20.0,
+        25.0,
+        30.0,
+        35.0,
+        40.0,
+        45.0,
+        50.0,
+        55.0,
+        60.0
+      ],
+      "tested": "right_knee_module vs right_shank_geom"
+    },
+    {
+      "joint": "right_ankle_pitch",
+      "sample_step_deg": 5,
+      "overlap_q_deg": [
+        -60.0,
+        -55.0,
+        -50.0,
+        -45.0,
+        -40.0,
+        -35.0,
+        -30.0,
+        -25.0,
+        -20.0,
+        -15.0,
+        -10.0,
+        -5.0,
+        0.0,
+        5.0,
+        10.0,
+        15.0,
+        20.0,
+        25.0,
+        30.0,
+        35.0,
+        40.0,
+        45.0,
+        50.0,
+        55.0,
+        60.0
+      ],
+      "tested": "right_ankle_module vs right_hock_geom"
+    }
+  ],
+  "candidate_step": [
+    {
+      "phase": 0.0,
+      "q_degrees": {
+        "left_hip_pitch": -7.105427357601002e-15,
+        "left_knee_pitch": 1.4210854715202004e-14,
+        "left_ankle_pitch": -7.105427357601002e-15
+      },
+      "left_sole_mm": [
+        13.106025409712682,
+        100.0,
+        0.18889117702715907
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.832
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.05,
+      "q_degrees": {
+        "left_hip_pitch": -0.5173082069203545,
+        "left_knee_pitch": -1.5569297692531165,
+        "left_ankle_pitch": 2.0742379761734675
+      },
+      "left_sole_mm": [
+        19.28636529849582,
+        100.0,
+        1.167760846177032
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35127.334
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.745
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5730.864
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.832
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.1,
+      "q_degrees": {
+        "left_hip_pitch": 0.07949274266612605,
+        "left_knee_pitch": -4.950364085212783,
+        "left_ankle_pitch": 4.870871342546657
+      },
+      "left_sole_mm": [
+        24.86173045906144,
+        100.0,
+        4.008551278456437
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35160.991
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5758.454
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.833
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.15000000000000002,
+      "q_degrees": {
+        "left_hip_pitch": 1.5802920044704116,
+        "left_knee_pitch": -9.587737997907695,
+        "left_ankle_pitch": 8.00744599343728
+      },
+      "left_sole_mm": [
+        29.28636530370618,
+        100.0,
+        8.43318611366061
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35247.296
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5813.494
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.834
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.2,
+      "q_degrees": {
+        "left_hip_pitch": 3.7502943063740375,
+        "left_knee_pitch": -14.843881039167002,
+        "left_ankle_pitch": 11.093586732792968
+      },
+      "left_sole_mm": [
+        32.127155745568665,
+        100.0,
+        14.008551266058106
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35376.369
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5907.652
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.834
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.25,
+      "q_degrees": {
+        "left_hip_pitch": 6.380798439548219,
+        "left_knee_pitch": -20.17292482994177,
+        "left_ankle_pitch": 13.792126390393552
+      },
+      "left_sole_mm": [
+        33.1060254231534,
+        100.0,
+        20.188891148727834
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35539.539
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6049.606
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.835
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.30000000000000004,
+      "q_degrees": {
+        "left_hip_pitch": 9.283462019878932,
+        "left_knee_pitch": -25.12169492234905,
+        "left_ankle_pitch": 15.838232902470125
+      },
+      "left_sole_mm": [
+        32.12715575210392,
+        100.0,
+        26.369231032941315
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35727.968
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6238.062
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.835
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.35000000000000003,
+      "q_degrees": {
+        "left_hip_pitch": 12.26602367362387,
+        "left_knee_pitch": -29.314473759097652,
+        "left_ankle_pitch": 17.048450085473775
+      },
+      "left_sole_mm": [
+        29.28636531589167,
+        100.0,
+        31.944596189773407
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35930.569
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6454.221
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.835
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.4,
+      "q_degrees": {
+        "left_hip_pitch": 15.112555606896166,
+        "left_knee_pitch": -32.444745686098955,
+        "left_ankle_pitch": 17.33219007920279
+      },
+      "left_sole_mm": [
+        24.861730475300817,
+        100.0,
+        36.369231031720034
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36131.778
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6658.453
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.835
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.45,
+      "q_degrees": {
+        "left_hip_pitch": 17.58040568724406,
+        "left_knee_pitch": -34.28186168569535,
+        "left_ankle_pitch": 16.70145599845128
+      },
+      "left_sole_mm": [
+        19.28636531679041,
+        100.0,
+        39.21002147212823
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36312.854
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6798.694
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.835
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.5,
+      "q_degrees": {
+        "left_hip_pitch": 19.419654757824468,
+        "left_knee_pitch": -34.6874076681526,
+        "left_ankle_pitch": 15.267752910328138
+      },
+      "left_sole_mm": [
+        13.106025428024207,
+        100.0,
+        40.18889114968485
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36451.501
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6831.914
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.835
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.55,
+      "q_degrees": {
+        "left_hip_pitch": 20.411575492107715,
+        "left_knee_pitch": -33.63039482657615,
+        "left_ankle_pitch": 13.218819334468428
+      },
+      "left_sole_mm": [
+        6.925685538408427,
+        100.0,
+        39.2100214801347
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36527.3
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6747.08
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.835
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.6000000000000001,
+      "q_degrees": {
+        "left_hip_pitch": 20.411538215824777,
+        "left_knee_pitch": -31.191242429462633,
+        "left_ankle_pitch": 10.779704213637864
+      },
+      "left_sole_mm": [
+        1.3503203774123236,
+        100.0,
+        36.369231046922806
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36527.297
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6571.722
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.834
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.65,
+      "q_degrees": {
+        "left_hip_pitch": 19.378408695043575,
+        "left_knee_pitch": -27.55188706852728,
+        "left_ankle_pitch": 8.173478373483704
+      },
+      "left_sole_mm": [
+        -3.074314467102809,
+        100.0,
+        31.944596210653458
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36448.403
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6356.081
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.834
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.7000000000000001,
+      "q_degrees": {
+        "left_hip_pitch": 17.381639720564863,
+        "left_knee_pitch": -22.978606823049688,
+        "left_ankle_pitch": 5.596967102484825
+      },
+      "left_sole_mm": [
+        -5.915104908339053,
+        100.0,
+        26.369231057446
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36298.103
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 6148.656
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.833
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.75,
+      "q_degrees": {
+        "left_hip_pitch": 14.591319421591443,
+        "left_knee_pitch": -17.808854014513507,
+        "left_ankle_pitch": 3.217534592922064
+      },
+      "left_sole_mm": [
+        -6.893974585042223,
+        100.0,
+        20.188891174483274
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 36094.347
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5979.887
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.833
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.8,
+      "q_degrees": {
+        "left_hip_pitch": 11.263849197584683,
+        "left_knee_pitch": -12.451184219650116,
+        "left_ankle_pitch": 1.1873350220654366
+      },
+      "left_sole_mm": [
+        -5.91510491318159,
+        100.0,
+        14.008551290589125
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35861.509
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5859.959
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.832
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.8500000000000001,
+      "q_degrees": {
+        "left_hip_pitch": 7.732476049086522,
+        "left_knee_pitch": -7.398834014277178,
+        "left_ankle_pitch": -0.3336420348093476
+      },
+      "left_sole_mm": [
+        -3.0743144765280555,
+        100.0,
+        8.433186134600916
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35626.241
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5784.707
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.832
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.9,
+      "q_degrees": {
+        "left_hip_pitch": 4.398532720779606,
+        "left_knee_pitch": -3.238868063948239,
+        "left_ankle_pitch": -1.159664656831369
+      },
+      "left_sole_mm": [
+        1.3503203639611598,
+        100.0,
+        4.008551293744887
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35415.912
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5743.37
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.831
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 0.9500000000000001,
+      "q_degrees": {
+        "left_hip_pitch": 1.6970509737898745,
+        "left_knee_pitch": -0.6041402329401748,
+        "left_ankle_pitch": -1.0929107408496996
+      },
+      "left_sole_mm": [
+        6.925685521852014,
+        100.0,
+        1.1677608542514122
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35254.116
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5724.705
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.831
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    },
+    {
+      "phase": 1.0,
+      "q_degrees": {
+        "left_hip_pitch": -7.105427357601002e-15,
+        "left_knee_pitch": 1.4210854715202004e-14,
+        "left_ankle_pitch": -7.105427357601002e-15
+      },
+      "left_sole_mm": [
+        13.106025409712682,
+        100.0,
+        0.18889117702715907
+      ],
+      "within_joint_limits": true,
+      "overlaps": [
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "left_hip_yaw_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_roll_module",
+          "intersection_mm3": 126743.11
+        },
+        {
+          "a": "right_hip_yaw_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 14985.846
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_hip_pitch_module",
+          "intersection_mm3": 62705.373
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_hip_pitch_module",
+          "intersection_mm3": 62705.375
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_knee_module",
+          "intersection_mm3": 1796.989
+        },
+        {
+          "a": "left_hip_roll_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "left_hip_pitch_module",
+          "b": "left_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "left_knee_module",
+          "b": "left_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "left_ankle_module",
+          "b": "left_hock_geom",
+          "intersection_mm3": 3636.832
+        },
+        {
+          "a": "right_hip_roll_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 35156.485
+        },
+        {
+          "a": "right_hip_pitch_module",
+          "b": "right_thigh_geom",
+          "intersection_mm3": 7925.744
+        },
+        {
+          "a": "right_knee_module",
+          "b": "right_shank_geom",
+          "intersection_mm3": 5721.124
+        },
+        {
+          "a": "right_ankle_module",
+          "b": "right_hock_geom",
+          "intersection_mm3": 3636.832
+        }
+      ]
+    }
+  ],
+  "checks_run": true,
+  "step_note": "21 samples, fixed torso/right foot, 40 mm swing lift, +/-20 mm fore/aft. Geometric diagnostic only; not a balanced or dynamically validated gait. Sampled checks do not prove continuous clearance."
+}
